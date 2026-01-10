@@ -9,6 +9,8 @@
 
 import QtQml
 
+import QGroundControl
+
 QtObject {
     property var guidedController
 
@@ -57,6 +59,28 @@ QtObject {
             text:       guidedController.gripperMessage,
             action:     guidedController.actionGripper,
             visible:    guidedController.showGripper
+        },
+        {
+            title:      qsTr("Fire Mission Start"),
+            text:       qsTr("Send FIRE_MISSION_START message to drone at current position"),
+            action:     function() {
+                console.log("Fire Mission Start action triggered from FlyViewAdditionalActionsList");
+                var vehicle = QGroundControl.multiVehicleManager.activeVehicle;
+                if (vehicle && vehicle.coordinate.isValid) {
+                    console.log("Vehicle found, current position:", vehicle.coordinate.latitude, vehicle.coordinate.longitude);
+                    try {
+                        vehicle.sendFireMissionStartAtCurrentPosition(1, 10);
+                        QGroundControl.showAppMessage(qsTr("Fire Mission Start command sent"));
+                        console.log("sendFireMissionStartAtCurrentPosition called successfully");
+                    } catch(e) {
+                        console.error("Error calling sendFireMissionStartAtCurrentPosition:", e);
+                        QGroundControl.showAppMessage(qsTr("Error sending Fire Mission Start command: %1").arg(e.toString()));
+                    }
+                } else {
+                    console.warn("Fire Mission: No valid vehicle or coordinate");
+                }
+            },
+            visible:    QGroundControl.multiVehicleManager.activeVehicle !== null
         }
     ]
 }

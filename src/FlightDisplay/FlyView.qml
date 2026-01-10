@@ -36,6 +36,10 @@ Item {
     // These should only be used by MainRootWindow
     property var planController:    _planController
     property var guidedController:  _guidedController
+    
+    // Fire Mission 타겟 위치 공유 속성 (FlyViewMap과 FlyViewCustomLayer 간 데이터 공유용)
+    property real fireMissionTargetLatitude: 35.9060968   // 기본값
+    property real fireMissionTargetLongitude: 128.7982812 // 기본값
 
     // Properties of UTM adapter
     property bool utmspSendActTrigger: false

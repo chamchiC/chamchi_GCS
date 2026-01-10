@@ -1,0 +1,89 @@
+# ============================================================================
+# CMakeLists.txt 통합 가이드
+# 
+# 이 파일은 Vehicle 모듈의 CMakeLists.txt에 추가할 코드 예제를 보여줍니다.
+# 실제 src/Vehicle/CMakeLists.txt 파일을 직접 수정하세요.
+# ============================================================================
+
+# 방법 1: Vehicle 모듈의 CMakeLists.txt에 직접 추가
+# 파일 위치: src/Vehicle/CMakeLists.txt
+
+# 기존 VEHICLE_SOURCES 리스트에 CustomMessageHandler 파일 추가
+set(VEHICLE_SOURCES
+    # ... 기존 소스 파일들 ...
+    Vehicle.cc
+    Vehicle.h
+    # ... 기존 소스 파일들 ...
+    
+    # 커스텀 메시지 핸들러 추가
+    ${CMAKE_SOURCE_DIR}/custom-messages/CustomMessageHandler.cc
+    ${CMAKE_SOURCE_DIR}/custom-messages/CustomMessageHandler.h
+)
+
+# 또는 별도 변수로 관리하는 경우:
+list(APPEND VEHICLE_SOURCES
+    ${CMAKE_SOURCE_DIR}/custom-messages/CustomMessageHandler.cc
+    ${CMAKE_SOURCE_DIR}/custom-messages/CustomMessageHandler.h
+)
+
+# ============================================================================
+# 방법 2: Custom 빌드를 사용하는 경우
+# 파일 위치: custom-example/CMakeLists.txt 또는 custom/CMakeLists.txt
+# ============================================================================
+
+# Custom 빌드의 CMakeLists.txt에 추가
+set(CUSTOM_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CustomPlugin.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CustomPlugin.h
+    # ... 기존 커스텀 소스 파일들 ...
+    
+    # 커스텀 메시지 핸들러 추가
+    ${CMAKE_SOURCE_DIR}/custom-messages/CustomMessageHandler.cc
+    ${CMAKE_SOURCE_DIR}/custom-messages/CustomMessageHandler.h
+    CACHE INTERNAL "" FORCE
+)
+
+# ============================================================================
+# 방법 3: 별도 라이브러리로 빌드하는 경우
+# ============================================================================
+
+# 별도의 CMakeLists.txt 파일 생성 (예: custom-messages/CMakeLists.txt)
+# 그리고 상위 CMakeLists.txt에서 add_subdirectory 사용
+
+# custom-messages/CMakeLists.txt 내용:
+add_library(CustomMessages STATIC
+    CustomMessageHandler.cc
+    CustomMessageHandler.h
+)
+
+target_include_directories(CustomMessages PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(CustomMessages PUBLIC
+    # 필요한 라이브러리들
+)
+
+# 상위 CMakeLists.txt에서:
+# add_subdirectory(custom-messages)
+# target_link_libraries(qgroundcontrol PRIVATE CustomMessages)
+
+# ============================================================================
+# 주의사항
+# ============================================================================
+
+# 1. 파일 경로 확인
+#    - CMAKE_SOURCE_DIR: 프로젝트 루트 디렉토리
+#    - CMAKE_CURRENT_SOURCE_DIR: 현재 CMakeLists.txt가 있는 디렉토리
+#    - 상대 경로 사용 시 주의
+
+# 2. 헤더 파일 포함 경로 확인
+#    - CustomMessageHandler.h를 포함할 수 있도록 include 디렉토리 설정 확인
+
+# 3. 의존성 확인
+#    - MAVLinkLib.h가 올바르게 링크되어 있는지 확인
+#    - Qt 관련 라이브러리가 올바르게 링크되어 있는지 확인
+
+# 4. 빌드 순서
+#    - MAVLink 라이브러리가 먼저 빌드되어야 함
+#    - CustomMessageHandler는 Vehicle 모듈과 함께 빌드됨

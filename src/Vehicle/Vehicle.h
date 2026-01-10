@@ -75,6 +75,7 @@ class TrajectoryPoints;
 class VehicleBatteryFactGroup;
 class VehicleObjectAvoidance;
 class GimbalController;
+class CustomMessageHandler;
 #ifdef QGC_UTM_ADAPTER
 class UTMSPVehicle;
 #endif
@@ -116,8 +117,8 @@ public:
             QObject*                parent = nullptr);
 
     // Pass these into the offline constructor to create an offline vehicle which tracks the offline vehicle settings
-    static const MAV_AUTOPILOT    MAV_AUTOPILOT_TRACK = static_cast<MAV_AUTOPILOT>(-1);
-    static const MAV_TYPE         MAV_TYPE_TRACK = static_cast<MAV_TYPE>(-1);
+    static constexpr MAV_AUTOPILOT    MAV_AUTOPILOT_TRACK = static_cast<MAV_AUTOPILOT>(-1);
+    static constexpr MAV_TYPE         MAV_TYPE_TRACK = static_cast<MAV_TYPE>(-1);
 
     // The following is used to create a disconnected Vehicle for use while offline editing.
     Vehicle(MAV_AUTOPILOT           firmwareType,
@@ -823,6 +824,25 @@ public slots:
     void setVtolInFwdFlight                 (bool vtolInFwdFlight);
     void _offlineFirmwareTypeSettingChanged (QVariant varFirmwareType); // Should only be used by MissionControler to set firmware from Plan file
     void _offlineVehicleTypeSettingChanged  (QVariant varVehicleType);  // Should only be used by MissionController to set vehicle type from Plan file
+    
+    /**
+     * @brief FIRE_MISSION_START 메시지를 드론에 송신
+     * @param targetSystem 타겟 시스템 ID - QML에서 int로 전달
+     * @param targetComponent 타겟 컴포넌트 ID - QML에서 int로 전달
+     * @param targetLat 목표 위도 (deg * 1E7) - QML에서 Number로 전달
+     * @param targetLon 목표 경도 (deg * 1E7) - QML에서 Number로 전달
+     * @param targetAlt 목표 고도 (미터) - QML에서 Number로 전달
+     * @param autoFire 자동 발사 활성화 (0: False, 1: True) - QML에서 int로 전달
+     * @param maxProjectiles 최대 발사체 수 - QML에서 int로 전달
+     */
+    Q_INVOKABLE void sendFireMissionStart(int targetSystem, int targetComponent, double targetLat, double targetLon, double targetAlt, int autoFire, int maxProjectiles);
+    
+    /**
+     * @brief 현재 위치를 목표로 FIRE_MISSION_START 메시지를 드론에 송신
+     * @param autoFire 자동 발사 활성화 (0: False, 1: True) - QML에서 int로 전달
+     * @param maxProjectiles 최대 발사체 수 - QML에서 int로 전달
+     */
+    Q_INVOKABLE void sendFireMissionStartAtCurrentPosition(int autoFire, int maxProjectiles);
 
 signals:
     void coordinateChanged              (QGeoCoordinate coordinate);
@@ -1282,6 +1302,7 @@ private:
     InitialConnectStateMachine*     _initialConnectStateMachine = nullptr;
     Actuators*                      _actuators                  = nullptr;
     RemoteIDManager*                _remoteIDManager            = nullptr;
+    CustomMessageHandler*           _customMessageHandler       = nullptr;
     StandardModes*                  _standardModes              = nullptr;
 
     // Terrain query members, used to get terrain altitude for doSetHome()

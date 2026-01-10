@@ -430,3 +430,8 @@ void QGroundControlQmlGlobal::updateLoggingFilterRules()
 {
     QGCLoggingCategoryRegister::instance()->setFilterRulesFromSettings(QString());
 }
+
+void QGroundControlQmlGlobal::showAppMessage(const QString &message, const QString &title)
+{
+    qgcApp()->showAppMessage(message, title);
+}

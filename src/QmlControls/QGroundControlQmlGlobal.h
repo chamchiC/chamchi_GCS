@@ -158,6 +158,9 @@ public:
     Q_INVOKABLE QString altitudeModeExtraUnits(AltMode altMode);        ///< String shown in the FactTextField.extraUnits ui
     Q_INVOKABLE QString altitudeModeShortDescription(AltMode altMode);  ///< String shown when a user needs to select an altitude mode
 
+    /// Show modal application message to the user
+    Q_INVOKABLE void showAppMessage(const QString &message, const QString &title = QString());
+
     // Property accessors
 
     static QString appName();

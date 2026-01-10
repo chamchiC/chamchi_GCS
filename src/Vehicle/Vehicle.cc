@@ -58,6 +58,10 @@
 #include "GimbalController.h"
 #include "MavlinkSettings.h"
 #include "APM.h"
+#include "CustomMessageHandler.h"
+#include "MAVLinkLib.h"
+// 커스텀 메시지 헤더는 MAVLinkLib.h 이후에 include (MAVLink 기본 타입이 먼저 정의되어야 함)
+#include <mavlink/v2.0/custom_messages/mavlink_msg_fire_mission_start.h>
 
 #ifdef QGC_UTM_ADAPTER
 #include "UTMSPVehicle.h"
@@ -285,6 +289,7 @@ void Vehicle::_commonInit()
     _componentInformationManager    = new ComponentInformationManager   (this, this);
     _initialConnectStateMachine     = new InitialConnectStateMachine    (this, this);
     _ftpManager                     = new FTPManager                    (this);
+    _customMessageHandler           = new CustomMessageHandler         (this);
 
     _vehicleLinkManager             = new VehicleLinkManager            (this);
 
@@ -516,6 +521,11 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
     _parameterManager->mavlinkMessageReceived(message);
     (void) QMetaObject::invokeMethod(_imageProtocolManager, "mavlinkMessageReceived", Qt::AutoConnection, message);
     _remoteIDManager->mavlinkMessageReceived(message);
+    
+    // 커스텀 메시지 핸들러 처리
+    if (_customMessageHandler && _customMessageHandler->mavlinkMessageReceived(message)) {
+        // 메시지가 처리되었지만 다른 핸들러도 메시지를 볼 수 있도록 계속 진행
+    }
 
     _waitForMavlinkMessageMessageReceivedHandler(message);
 
@@ -656,6 +666,11 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
         break;   
     case MAVLINK_MSG_ID_COMMAND_LONG:
         _handleCommandLong(message);
+        break;
+    
+    // 커스텀 메시지
+    case 50000: // MAVLINK_MSG_ID_FIRE_MISSION_START
+        // CustomMessageHandler에서 이미 처리됨
         break;
     }
 
@@ -1764,6 +1779,133 @@ void Vehicle::sendMessageMultiple(mavlink_message_t message)
     info.retryCount =   _sendMessageMultipleRetries;
 
     _sendMessageMultipleList.append(info);
+}
+
+void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double targetLat, double targetLon, double targetAlt, int autoFire, int maxProjectiles)
+{
+    SharedLinkInterfacePtr sharedLink = vehicleLinkManager()->primaryLink().lock();
+    if (!sharedLink) {
+        qCWarning(VehicleLog) << "sendFireMissionStart: No priority link available";
+        return;
+    }
+    
+    // QML에서 전달된 값들을 MAVLink 메시지 타입으로 변환
+    uint8_t targetSystem_uint8 = static_cast<uint8_t>(qBound(0, targetSystem, 255));
+    uint8_t targetComponent_uint8 = static_cast<uint8_t>(qBound(0, targetComponent, 255));
+    int32_t lat = static_cast<int32_t>(targetLat);
+    int32_t lon = static_cast<int32_t>(targetLon);
+    float alt = static_cast<float>(targetAlt);
+    uint8_t autoFire_uint8 = static_cast<uint8_t>(qBound(0, autoFire, 255));
+    uint8_t maxProjectiles_uint8 = static_cast<uint8_t>(qBound(0, maxProjectiles, 255));
+    
+    qCInfo(VehicleLog) << "sendFireMissionStart: Called from QML with parameters:";
+    qCInfo(VehicleLog) << "  targetSystem (QML):" << targetSystem << "-> (converted):" << targetSystem_uint8;
+    qCInfo(VehicleLog) << "  targetComponent (QML):" << targetComponent << "-> (converted):" << targetComponent_uint8;
+    qCInfo(VehicleLog) << "  targetLat (QML):" << targetLat << "-> (converted):" << lat;
+    qCInfo(VehicleLog) << "  targetLon (QML):" << targetLon << "-> (converted):" << lon;
+    qCInfo(VehicleLog) << "  targetAlt (QML):" << targetAlt << "-> (converted):" << alt;
+    qCInfo(VehicleLog) << "  autoFire (QML):" << autoFire << "-> (converted):" << autoFire_uint8;
+    qCInfo(VehicleLog) << "  maxProjectiles (QML):" << maxProjectiles << "-> (converted):" << maxProjectiles_uint8;
+    
+    mavlink_message_t msg;
+    mavlink_fire_mission_start_t fireMission;
+    
+    uint8_t systemId = static_cast<uint8_t>(MAVLinkProtocol::instance()->getSystemId());
+    uint8_t componentId = MAVLinkProtocol::getComponentId();
+    uint8_t channel = sharedLink->mavlinkChannel();
+    
+    // 수신 코드(C++)의 FireMissionStart 구조체 바이트 레이아웃에 맞춤:
+    // offset 0-3:   target_lat (int32_t)
+    // offset 4-7:   target_lon (int32_t)
+    // offset 8-11:  target_alt (float)
+    // offset 12:    target_system (uint8_t)
+    // offset 13:    target_component (uint8_t)
+    // offset 14:    auto_fire (uint8_t)
+    // offset 15:    max_projectiles (uint8_t)
+    // MAVLink 구조체는 자동으로 이 순서로 정렬되므로 순서대로 채움
+    fireMission.target_lat = lat;
+    fireMission.target_lon = lon;
+    fireMission.target_alt = alt;
+    fireMission.target_system = targetSystem_uint8;
+    fireMission.target_component = targetComponent_uint8;
+    fireMission.auto_fire = autoFire_uint8;
+    fireMission.max_projectiles = maxProjectiles_uint8;
+    
+    // 인코딩 전 파라미터 로그 (qCInfo로 변경하여 항상 출력)
+    qCInfo(VehicleLog) << "sendFireMissionStart: Preparing message with parameters:";
+    qCInfo(VehicleLog) << "  System ID (sender):" << systemId;
+    qCInfo(VehicleLog) << "  Component ID (sender):" << componentId;
+    qCInfo(VehicleLog) << "  Channel:" << channel;
+    qCInfo(VehicleLog) << "  Target Latitude (degE7):" << fireMission.target_lat << "(" << (fireMission.target_lat / 1e7) << "degrees)";
+    qCInfo(VehicleLog) << "  Target Longitude (degE7):" << fireMission.target_lon << "(" << (fireMission.target_lon / 1e7) << "degrees)";
+    qCInfo(VehicleLog) << "  Target Altitude (m):" << fireMission.target_alt;
+    qCInfo(VehicleLog) << "  Target System:" << fireMission.target_system;
+    qCInfo(VehicleLog) << "  Target Component:" << fireMission.target_component;
+    qCInfo(VehicleLog) << "  Auto Fire:" << fireMission.auto_fire << (fireMission.auto_fire ? "(True)" : "(False)");
+    qCInfo(VehicleLog) << "  Max Projectiles:" << fireMission.max_projectiles;
+    
+    // 수신 코드와 호환되는 바이트 레이아웃으로 인코딩
+    // MAVLink encode_chan 함수는 구조체를 바이트 레이아웃에 맞춰 인코딩함
+    mavlink_msg_fire_mission_start_encode_chan(
+        systemId,
+        componentId,
+        channel,
+        &msg,
+        &fireMission);
+    
+    // 인코딩 후 메시지 정보 로그 (qCInfo로 변경하여 항상 출력)
+    qCInfo(VehicleLog) << "sendFireMissionStart: Encoded message details:";
+    qCInfo(VehicleLog) << "  Message ID:" << msg.msgid << "(expected: 50000)";
+    qCInfo(VehicleLog) << "  Message Length:" << msg.len << "bytes";
+    qCInfo(VehicleLog) << "  Sequence:" << msg.seq;
+    qCInfo(VehicleLog) << "  System ID:" << msg.sysid;
+    qCInfo(VehicleLog) << "  Component ID:" << msg.compid;
+    
+    sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
+    
+    // 링크 타입 이름 가져오기
+    QString linkTypeName = "Unknown";
+    if (sharedLink && sharedLink->linkConfiguration()) {
+        switch (sharedLink->linkConfiguration()->type()) {
+            case LinkConfiguration::TypeUdp:
+                linkTypeName = "UDP";
+                break;
+            case LinkConfiguration::TypeSerial:
+                linkTypeName = "Serial";
+                break;
+            case LinkConfiguration::TypeTcp:
+                linkTypeName = "TCP";
+                break;
+            case LinkConfiguration::TypeMock:
+                linkTypeName = "Mock";
+                break;
+            default:
+                linkTypeName = "Unknown";
+                break;
+        }
+    }
+    qCInfo(VehicleLog) << "sendFireMissionStart: Message sent successfully via link:" << linkTypeName;
+}
+
+void Vehicle::sendFireMissionStartAtCurrentPosition(int autoFire, int maxProjectiles)
+{
+    if (!coordinate().isValid()) {
+        qCWarning(VehicleLog) << "sendFireMissionStartAtCurrentPosition: Invalid vehicle coordinate";
+        return;
+    }
+    
+    qCInfo(VehicleLog) << "sendFireMissionStartAtCurrentPosition: Called from QML";
+    
+    QGeoCoordinate currentPos = coordinate();
+    double targetLat = static_cast<double>(currentPos.latitude() * 1e7);
+    double targetLon = static_cast<double>(currentPos.longitude() * 1e7);
+    double targetAlt = currentPos.altitude();
+    
+    qCInfo(VehicleLog) << "  Current position - Lat:" << currentPos.latitude() << "deg, Lon:" << currentPos.longitude() << "deg, Alt:" << targetAlt << "m";
+    qCInfo(VehicleLog) << "  Converted - Lat:" << targetLat << "degE7, Lon:" << targetLon << "degE7";
+    
+    // 현재 Vehicle의 ID와 Component ID를 사용
+    sendFireMissionStart(_id, _compID, targetLat, targetLon, targetAlt, autoFire, maxProjectiles);
 }
 
 void Vehicle::_missionManagerError(int errorCode, const QString& errorMsg)

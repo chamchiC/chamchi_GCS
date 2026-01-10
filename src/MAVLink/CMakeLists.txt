@@ -46,6 +46,7 @@ target_include_directories(${CMAKE_PROJECT_NAME}
         ${mavlink_SOURCE_DIR}/all
         ${mavlink_SOURCE_DIR}/common
         ${mavlink_SOURCE_DIR}/development
+        ${CMAKE_SOURCE_DIR}/libs/mavlink/include  # 커스텀 메시지 헤더 경로 추가
 )
 
 # if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
