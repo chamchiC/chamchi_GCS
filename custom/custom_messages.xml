@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mavlink>
+    <include>common.xml</include>
+    <messages>
+        <message id="50000" name="FIRE_MISSION_START">
+            <description>Start a fire mission command</description>
+            <field type="uint8_t" name="target_system">Target System ID</field>
+            <field type="uint8_t" name="target_component">Target Component ID</field>
+            <field type="int32_t" name="target_lat" units="degE7">Target Latitude (deg * 1E7)</field>
+            <field type="int32_t" name="target_lon" units="degE7">Target Longitude (deg * 1E7)</field>
+            <field type="float" name="target_alt" units="m">Target Altitude (meters)</field>
+            <field type="uint8_t" name="auto_fire">Auto fire enabled (0: False, 1: True)</field>
+            <field type="uint8_t" name="max_projectiles">Maximum number of projectiles</field>
+        </message>
+    </messages>
+</mavlink>

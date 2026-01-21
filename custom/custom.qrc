@@ -14,14 +14,21 @@
         <file alias="vertical_speed.svg">res/Images/vertical_speed.svg</file>
         <file alias="dronecode-black.svg">res/Images/dronecode-black.svg</file>
         <file alias="dronecode-white.svg">res/Images/dronecode-white.svg</file>
+        <file alias="easysystem.svg">res/Images/easysystem.svg</file>
     </qresource>
     <qresource prefix="/Custom/qmlimages">
         <file alias="PaperPlane.svg">res/Images/CustomVehicleIcon.svg</file>
     </qresource>
     <qresource prefix="/Custom/qml">
+        <file alias="QGroundControl/FlightDisplay/CustomEmptyWindow.qml">src/CustomEmptyWindow.qml</file>
         <file alias="QGroundControl/FlightDisplay/CustomGuidedActionsController.qml">src/CustomGuidedActionsController.qml</file>
         <file alias="QGroundControl/FlightDisplay/FlyViewCustomLayer.qml">src/FlyViewCustomLayer.qml</file>
         <file alias="QGroundControl/FlightDisplay/FlyViewToolStripActionList.qml">src/FlyViewToolStripActionList.qml</file>
+        <file alias="QGroundControl/FlightDisplay/FlyView.qml">src/FlyView.qml</file>
+        <file alias="QGroundControl/FlightDisplay/FlyViewWidgetLayer.qml">src/FlyViewWidgetLayer.qml</file>
+        <file alias="QGroundControl/Controls/FlyViewToolBar.qml">src/FlyViewToolBar.qml</file>
+        <file alias="QGroundControl/MainWindow/MainWindow.qml">src/MainWindow.qml</file>
+        <file alias="QGroundControl/VehicleSetup/VehicleSummary.qml">src/VehicleSummary.qml</file>
     </qresource>
     <qresource prefix="/Custom/res">
         <file alias="QGCLogoFull.svg">res/QGCLogoFull.svg</file>

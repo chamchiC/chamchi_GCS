@@ -12,6 +12,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Window
 
 import QGroundControl
 import QGroundControl.Controls
@@ -253,6 +254,126 @@ Item {
             vehicle:            _activeVehicle
             showHeading:        false
             anchors.centerIn:   parent
+        }
+    }
+
+    // 빈 창 컴포넌트
+    Component {
+        id: customWindowComponent
+        CustomEmptyWindow { }
+    }
+    
+    property var _customWindowInstance: null
+    
+    // Fire Mission 설정값
+    property int _targetSystemId: 1
+    
+    // 빈 창 열기 버튼
+    QGCButton {
+        id: openWindowButton
+        anchors.right: parent.right
+        anchors.bottom: fireMissionSettingsPanel.top
+        anchors.margins: ScreenTools.defaultFontPixelWidth
+        text: qsTr("Open Window")
+        
+        onClicked: {
+            if (_customWindowInstance === null) {
+                _customWindowInstance = customWindowComponent.createObject(null)
+                if (_customWindowInstance) {
+                    _customWindowInstance.closing.connect(function() {
+                        _customWindowInstance = null
+                    })
+                    _customWindowInstance.show()
+                }
+            } else {
+                _customWindowInstance.raise()
+                _customWindowInstance.requestActivate()
+            }
+        }
+    }
+    
+    // Fire Mission 타겟 시스템 ID 설정 패널
+    Rectangle {
+        id: fireMissionSettingsPanel
+        anchors.right: parent.right
+        anchors.bottom: fireMissionButton.top
+        anchors.margins: ScreenTools.defaultFontPixelWidth
+        width: sysIdRow.width + ScreenTools.defaultFontPixelWidth * 2
+        height: sysIdRow.height + ScreenTools.defaultFontPixelHeight * 0.8
+        color: Qt.rgba(qgcPal.window.r, qgcPal.window.g, qgcPal.window.b, 0.85)
+        radius: ScreenTools.defaultFontPixelWidth * 0.5
+        visible: _activeVehicle !== null
+        
+        Row {
+            id: sysIdRow
+            anchors.centerIn: parent
+            spacing: ScreenTools.defaultFontPixelWidth * 0.5
+            
+            QGCLabel {
+                text: qsTr("Sys ID:")
+                font.pointSize: ScreenTools.smallFontPointSize
+                anchors.verticalCenter: parent.verticalCenter
+            }
+            QGCTextField {
+                id: targetSystemIdField
+                width: ScreenTools.defaultFontPixelWidth * 5
+                height: ScreenTools.defaultFontPixelHeight * 1.5
+                text: _targetSystemId.toString()
+                inputMethodHints: Qt.ImhDigitsOnly
+                validator: IntValidator { bottom: 1; top: 255 }
+                onEditingFinished: {
+                    var val = parseInt(text)
+                    if (!isNaN(val) && val >= 1 && val <= 255) {
+                        _targetSystemId = val
+                    } else {
+                        text = _targetSystemId.toString()
+                    }
+                }
+            }
+        }
+    }
+    
+    // FIRE_MISSION_START 버튼 (우측 하단에 배치)
+    QGCButton {
+        id: fireMissionButton
+        anchors.right: parent.right
+        anchors.bottom: attitudeIndicator.top
+        anchors.margins: ScreenTools.defaultFontPixelWidth
+        text: qsTr("Fire Mission")
+        visible: _activeVehicle !== null
+        
+        onClicked: {
+            if (!_activeVehicle) {
+                QGroundControl.showAppMessage(qsTr("No active vehicle"));
+                return;
+            }
+            
+            // 저장된 타겟 위치 확인
+            var savedTargetPos = QGroundControl.fireMissionTargetPosition
+            if (!savedTargetPos.isValid || savedTargetPos.latitude === 0 || savedTargetPos.longitude === 0) {
+                QGroundControl.showAppMessage(qsTr("No target position saved. Please select a target position on the map first."));
+                return;
+            }
+            
+            // 고정 값
+            var autoFire = 1;
+            var maxProjectiles = 10;
+            
+            // sendFireMissionStart 파라미터:
+            // 1. target_system    (uint8)  : 타겟 시스템 ID (드론 ID)
+            // 2. target_component (uint8)  : 타겟 컴포넌트 ID
+            // 3. target_lat       (int32)  : 위도 (degE7 = 도 * 1E7)
+            // 4. target_lon       (int32)  : 경도 (degE7 = 도 * 1E7)
+            // 5. target_alt       (float)  : 고도 (미터)
+            // 6. auto_fire        (uint8)  : 자동 발사 여부 (0/1)
+            // 7. max_projectiles  (uint8)  : 최대 발사체 수
+            try {
+                _activeVehicle.sendFireMissionStart(_targetSystemId, 1, 0, 0, 2, autoFire, maxProjectiles);
+                QGroundControl.showAppMessage(qsTr("Fire Mission Start command sent to: %1, %2").arg(savedTargetPos.latitude.toFixed(6)).arg(savedTargetPos.longitude.toFixed(6)));
+            } catch(e) {
+                console.error("Error calling sendFireMissionStart:", e);
+                QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
+            }
         }
     }
 }

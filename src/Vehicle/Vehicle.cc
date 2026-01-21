@@ -1866,26 +1866,24 @@ void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double
     // 링크 타입 이름 가져오기
     QString linkTypeName = "Unknown";
     if (sharedLink && sharedLink->linkConfiguration()) {
-        switch (sharedLink->linkConfiguration()->type()) {
-            case LinkConfiguration::TypeUdp:
-                linkTypeName = "UDP";
-                break;
-            case LinkConfiguration::TypeSerial:
-                linkTypeName = "Serial";
-                break;
-            case LinkConfiguration::TypeTcp:
-                linkTypeName = "TCP";
-                break;
-            case LinkConfiguration::TypeMock:
-                linkTypeName = "Mock";
-                break;
-            default:
-                linkTypeName = "Unknown";
-                break;
+        const LinkConfiguration::LinkType linkType = sharedLink->linkConfiguration()->type();
+        if (linkType == LinkConfiguration::TypeUdp) {
+            linkTypeName = "UDP";
+        } else if (linkType == LinkConfiguration::TypeSerial) {
+            linkTypeName = "Serial";
+        } else if (linkType == LinkConfiguration::TypeTcp) {
+            linkTypeName = "TCP";
+#ifdef QT_DEBUG
+        } else if (linkType == LinkConfiguration::TypeMock) {
+            linkTypeName = "Mock";
+#endif
+        } else {
+            linkTypeName = "Unknown";
         }
     }
     qCInfo(VehicleLog) << "sendFireMissionStart: Message sent successfully via link:" << linkTypeName;
 }
+
 
 void Vehicle::sendFireMissionStartAtCurrentPosition(int autoFire, int maxProjectiles)
 {

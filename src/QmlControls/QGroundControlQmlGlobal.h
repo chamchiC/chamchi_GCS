@@ -96,6 +96,7 @@ public:
     Q_PROPERTY(QGeoCoordinate       flightMapPosition       READ    flightMapPosition       WRITE setFlightMapPosition  NOTIFY flightMapPositionChanged)
     Q_PROPERTY(double               flightMapZoom           READ    flightMapZoom           WRITE setFlightMapZoom      NOTIFY flightMapZoomChanged)
     Q_PROPERTY(double               flightMapInitialZoom    MEMBER  _flightMapInitialZoom   CONSTANT)   ///< Zoom level to use when either gcs or vehicle shows up for first time
+    Q_PROPERTY(QGeoCoordinate       fireMissionTargetPosition   READ    fireMissionTargetPosition   WRITE setFireMissionTargetPosition  NOTIFY fireMissionTargetPositionChanged)  ///< Target position saved for Fire Mission
 
     Q_PROPERTY(QString  parameterFileExtension  READ parameterFileExtension CONSTANT)
     Q_PROPERTY(QString  missionFileExtension    READ missionFileExtension   CONSTANT)
@@ -179,6 +180,7 @@ public:
     QmlUnitsConversion*     unitsConversion     ()  { return &_unitsConversion; }
     static QGeoCoordinate   flightMapPosition   ()  { return _coord; }
     static double           flightMapZoom       ()  { return _zoom; }
+    static QGeoCoordinate   fireMissionTargetPosition   ()  { return _fireMissionTargetCoord; }
 
 #ifndef QGC_AIRLINK_DISABLED
     AirLinkManager*         airlinkManager      ()  { return _airlinkManager; }
@@ -217,6 +219,7 @@ public:
 
     void    setFlightMapPosition        (QGeoCoordinate& coordinate);
     void    setFlightMapZoom            (double zoom);
+    void    setFireMissionTargetPosition(QGeoCoordinate& coordinate);
 
     QString parameterFileExtension  (void) const;
     QString missionFileExtension    (void) const;
@@ -236,6 +239,7 @@ signals:
     void mavlinkSystemIDChanged         (int id);
     void flightMapPositionChanged       (QGeoCoordinate flightMapPosition);
     void flightMapZoomChanged           (double flightMapZoom);
+    void fireMissionTargetPositionChanged(QGeoCoordinate fireMissionTargetPosition);
 
 private:
     QGCMapEngineManager*    _mapEngineManager       = nullptr;
@@ -265,6 +269,7 @@ private:
 
     static QGeoCoordinate   _coord;
     static double           _zoom;
+    static QGeoCoordinate   _fireMissionTargetCoord;  ///< Saved target position for Fire Mission
     QTimer                  _flightMapPositionSettledTimer;
 
     static constexpr const char* kQmlGlobalKeyName = "QGCQml";

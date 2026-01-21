@@ -5,6 +5,7 @@ qt_add_qml_module(FlightDisplayModule
     VERSION 1.0
     RESOURCE_PREFIX /qml
     QML_FILES
+        CustomEmptyWindow.qml
         CustomGuidedActionsController.qml
         DefaultChecklist.qml
         FixedWingChecklist.qml

@@ -76,11 +76,14 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmwarePlugin/CustomFirmwarePlugin.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmwarePlugin/CustomFirmwarePluginFactory.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmwarePlugin/CustomFirmwarePluginFactory.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CustomMessageHandler.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CustomMessageHandler.h
     CACHE INTERNAL "" FORCE
 )
 
 set(CUSTOM_LIBRARIES
     CustomModule # Explicitly link QML module, needed by Qt 6.6.3, TODO: Remove when support for this version is dropped
+    AutoPilotPluginsPX4Module # PX4 QML module for vehicle setup pages
     CACHE INTERNAL "" FORCE
 )
 
@@ -88,5 +91,6 @@ set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/AutoPilotPlugin
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmwarePlugin
+    ${CMAKE_CURRENT_SOURCE_DIR}
     CACHE INTERNAL "" FORCE
 )

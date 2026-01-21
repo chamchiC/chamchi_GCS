@@ -52,7 +52,6 @@ FlightMap {
     property bool   _keepVehicleCentered:       pipMode ? true : false
     property bool   _saveZoomLevelSetting:      true
 
-
     function _adjustMapZoomForPipMode() {
         _saveZoomLevelSetting = false
         if (pipMode) {
@@ -751,37 +750,13 @@ FlightMap {
                         text:               qsTr("Target Position")
                         onClicked: {
                             mapClickDropPanel.close()
-                            
-                            // FlyView.qml의 공유 속성에 타겟 위치 저장
-                            // FlyView.qml의 _root에 fireMissionTargetLatitude/Longitude 속성이 있음
-                            var flyViewRoot = _root.parent;
-                            
-                            // FlyView의 _root 찾기 (부모를 탐색)
-                            while (flyViewRoot && !flyViewRoot.hasOwnProperty("fireMissionTargetLatitude")) {
-                                flyViewRoot = flyViewRoot.parent;
-                                if (!flyViewRoot) break;
-                            }
-                            
-                            if (flyViewRoot && flyViewRoot.hasOwnProperty("fireMissionTargetLatitude")) {
-                                // FlyView.qml의 공유 속성에 저장
-                                flyViewRoot.fireMissionTargetLatitude = mapClickCoord.latitude;
-                                flyViewRoot.fireMissionTargetLongitude = mapClickCoord.longitude;
-                                
-                                // customOverlay에도 직접 설정 (동기화 및 즉시 반영)
-                                if (flyViewRoot.customOverlay && typeof flyViewRoot.customOverlay.setTargetPosition === 'function') {
-                                    flyViewRoot.customOverlay.setTargetPosition(mapClickCoord.latitude, mapClickCoord.longitude);
-                                }
-                                
-                                QGroundControl.showAppMessage(qsTr("Target position set: %1, %2")
-                                    .arg(mapClickCoord.latitude.toFixed(6))
-                                    .arg(mapClickCoord.longitude.toFixed(6)));
-                                console.log("Target position saved:", mapClickCoord.latitude, mapClickCoord.longitude);
-                            } else {
-                                QGroundControl.showAppMessage(qsTr("Error: Could not set target position"));
-                                console.error("FlyViewMap: Could not find FlyView root to set target position");
-                            }
+                            // 타겟 위치를 저장
+                            QGroundControl.fireMissionTargetPosition = mapClickCoord
+                            QGroundControl.showAppMessage(qsTr("Target position saved: %1, %2").arg(mapClickCoord.latitude.toFixed(6)).arg(mapClickCoord.longitude.toFixed(6)))
                         }
                     }
+
+                    
 
                     ColumnLayout {
                         spacing: 0
@@ -794,10 +769,11 @@ FlightMap {
     }
 
     onMapClicked: (position) => {
+        // Target Position 버튼은 항상 표시해야 하므로 조건 수정
         if (!globals.guidedControllerFlyView.guidedUIVisible && 
             (globals.guidedControllerFlyView.showGotoLocation || globals.guidedControllerFlyView.showOrbit ||
              globals.guidedControllerFlyView.showROI || globals.guidedControllerFlyView.showSetHome ||
-             globals.guidedControllerFlyView.showSetEstimatorOrigin)) {
+             globals.guidedControllerFlyView.showSetEstimatorOrigin || true)) {  // 항상 드롭다운 표시 (Target Position 버튼을 위해)
 
             position = Qt.point(position.x, position.y)
             var clickCoord = _root.toCoordinate(position, false /* clipToViewPort */)

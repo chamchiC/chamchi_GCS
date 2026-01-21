@@ -56,28 +56,36 @@ Item {
     // FIRE_MISSION_START 버튼 (우측 하단에 배치)
     property var _activeVehicle: QGroundControl.multiVehicleManager.activeVehicle
     
-    // 타겟 위치 (지도에서 선택한 위치)
-    property real _targetLatitude: 35.9060968   // 기본값
-    property real _targetLongitude: 128.7982812 // 기본값
+    // 빈 창 컴포넌트
+    Component {
+        id: customWindowComponent
+        CustomEmptyWindow { }
+    }
     
-    // 타겟 위치 설정 함수 (FlyViewMap.qml에서 호출)
-    function setTargetPosition(latitude, longitude) {
-        // 로컬 속성에 저장
-        _targetLatitude = latitude;
-        _targetLongitude = longitude;
+    property var _customWindowInstance: null
+    
+    // 빈 창 열기 버튼
+    QGCButton {
+        id: openWindowButton
+        anchors.right: parent.right
+        anchors.bottom: fireMissionButton.top
+        anchors.margins: ScreenTools.defaultFontPixelWidth
+        text: qsTr("Open Window")
         
-        // FlyView.qml의 공유 속성에도 저장 (다른 컴포넌트에서 접근 가능하도록)
-        var flyViewRoot = parent;
-        while (flyViewRoot && !flyViewRoot.hasOwnProperty("fireMissionTargetLatitude")) {
-            flyViewRoot = flyViewRoot.parent;
-            if (!flyViewRoot) break;
+        onClicked: {
+            if (_customWindowInstance === null) {
+                _customWindowInstance = customWindowComponent.createObject(_root)
+                if (_customWindowInstance) {
+                    _customWindowInstance.closing.connect(function() {
+                        _customWindowInstance = null
+                    })
+                    _customWindowInstance.show()
+                }
+            } else {
+                _customWindowInstance.raise()
+                _customWindowInstance.requestActivate()
+            }
         }
-        if (flyViewRoot && flyViewRoot.hasOwnProperty("fireMissionTargetLatitude")) {
-            flyViewRoot.fireMissionTargetLatitude = latitude;
-            flyViewRoot.fireMissionTargetLongitude = longitude;
-        }
-        
-        console.log("Target position set:", latitude, longitude);
     }
     
     QGCButton {
@@ -94,60 +102,48 @@ Item {
                 return;
             }
             
+            // 저장된 타겟 위치 확인
+            var savedTargetPos = QGroundControl.fireMissionTargetPosition
+            if (!savedTargetPos.isValid || savedTargetPos.latitude === 0 || savedTargetPos.longitude === 0) {
+                QGroundControl.showAppMessage(qsTr("No target position saved. Please select a target position on the map first."));
+                return;
+            }
+            
             // ============================================
             // FIRE_MISSION_START 파라미터 설정
-            // custom_messages.xml 구조에 맞춰 직접 값을 입력하세요
+            // 저장된 타겟 위치를 사용
             // ============================================
             
             // target_lat, target_lon: 위도/경도 (degE7 형식 = 도 * 1E7)
-            // 지도에서 "Target Position" 버튼으로 설정한 위치 사용
-            var targetLat = _targetLatitude;   // 기본값 또는 setTargetPosition()으로 업데이트됨
-            var targetLon = _targetLongitude;  // 기본값 또는 setTargetPosition()으로 업데이트됨
+            // 저장된 위치에서 가져옴
+            var targetLatDegE7 = Math.round(savedTargetPos.latitude * 1e7);  // 위도 (degE7)
+            var targetLonDegE7 = Math.round(savedTargetPos.longitude * 1e7); // 경도 (degE7)
             
-            // FlyView.qml의 공유 속성에서 타겟 위치 읽기 (Target Position 버튼으로 설정된 값)
-            var flyViewRoot = parent;
-            while (flyViewRoot && !flyViewRoot.hasOwnProperty("fireMissionTargetLatitude")) {
-                flyViewRoot = flyViewRoot.parent;
-                if (!flyViewRoot) break;
-            }
-            if (flyViewRoot && flyViewRoot.hasOwnProperty("fireMissionTargetLatitude")) {
-                // FlyView.qml의 공유 속성 값 사용 (가장 최신 값)
-                targetLat = flyViewRoot.fireMissionTargetLatitude;
-                targetLon = flyViewRoot.fireMissionTargetLongitude;
-            }
-            
-            console.log("Fire Mission: Using target position - Lat:", targetLat, "Lon:", targetLon);
-            
-            var targetLatDegE7 = Math.round(targetLat * 1e7);  // 위도 (degE7)
-            var targetLonDegE7 = Math.round(targetLon * 1e7); // 경도 (degE7)
-            
-            // target_alt: 고도 (미터)
-            var targetAlt = 1.0;  // 고도 (m) - 여기에 원하는 값 입력
+            // target_alt: 고도 (미터) - 저장된 위치의 고도 사용, 없으면 0
+            var targetAlt = savedTargetPos.altitude && !isNaN(savedTargetPos.altitude) ? savedTargetPos.altitude : 0.0;
             
             // auto_fire: 자동 발사 (0 = False, 1 = True)
             var autoFire = 1;  // 0 또는 1 - 여기에 원하는 값 입력
             
             // max_projectiles: 최대 발사체 수
             var maxProjectiles = 10;  // 최대 발사체 수 - 여기에 원하는 값 입력
-            
+
             // ============================================
+            // 파라미터 순서 (custom_messages.xml 구조와 동일):
             // 메시지 전송
             // ============================================
-            // vehicle.sendFireMissionStart(targetSystem, targetComponent, targetLatDegE7, targetLonDegE7, targetAlt, autoFire, maxProjectiles)
-            // 
-            // 파라미터 순서 (custom_messages.xml 구조와 동일):
             // 1. targetSystem (uint8_t) - 타겟 시스템 ID
             // 2. targetComponent (uint8_t) - 타겟 컴포넌트 ID
             // 3. targetLat (int32_t, degE7) - 위도 * 1E7
-            // 4. targetLon (int32_t, degE7) - 경도 * 1E7  
+            // 4. targetLon (int32_t, degE7) - 경도 * 1E7
             // 5. targetAlt (float, m) - 고도 미터
             // 6. autoFire (int, 0/1) - 자동 발사 활성화
             // 7. maxProjectiles (int) - 최대 발사체 수
             // ============================================
             
             try {
-                _activeVehicle.sendFireMissionStart(2, 1, targetLatDegE7, targetLonDegE7, targetAlt, autoFire, maxProjectiles);
-                QGroundControl.showAppMessage(qsTr("Fire Mission Start command sent"));
+                _activeVehicle.sendFireMissionStart(1, 1, 0, 0, 2, autoFire, maxProjectiles);
+                QGroundControl.showAppMessage(qsTr("Fire Mission Start command sent to: %1, %2").arg(savedTargetPos.latitude.toFixed(6)).arg(savedTargetPos.longitude.toFixed(6)));
             } catch(e) {
                 console.error("Error calling sendFireMissionStart:", e);
                 QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
@@ -155,6 +151,13 @@ Item {
         }
         
         ToolTip.visible: hovered
-        ToolTip.text: qsTr("Send FIRE_MISSION_START message - Edit parameters in code")
+        ToolTip.text: {
+            var savedTargetPos = QGroundControl.fireMissionTargetPosition
+            if (savedTargetPos.isValid && savedTargetPos.latitude !== 0 && savedTargetPos.longitude !== 0) {
+                return qsTr("Send FIRE_MISSION_START to saved target: %1, %2").arg(savedTargetPos.latitude.toFixed(6)).arg(savedTargetPos.longitude.toFixed(6))
+            } else {
+                return qsTr("Send FIRE_MISSION_START - No target position saved. Select target on map first.")
+            }
+        }
     }
 }

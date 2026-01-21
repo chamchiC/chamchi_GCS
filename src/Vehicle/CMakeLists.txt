@@ -24,14 +24,14 @@ target_sources(${CMAKE_PROJECT_NAME}
         VehicleLinkManager.h
         VehicleObjectAvoidance.cc
         VehicleObjectAvoidance.h
-        ${CMAKE_SOURCE_DIR}/custom-messages/CustomMessageHandler.cc
-        ${CMAKE_SOURCE_DIR}/custom-messages/CustomMessageHandler.h
+        ${CMAKE_SOURCE_DIR}/custom/src/CustomMessageHandler.cc
+        ${CMAKE_SOURCE_DIR}/custom/src/CustomMessageHandler.h
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE 
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/libs/mavlink/include  # 커스텀 메시지 헤더 경로 추가
-    ${CMAKE_SOURCE_DIR}/custom-messages  # CustomMessageHandler.h 경로 추가
+    ${CMAKE_SOURCE_DIR}/custom/src  # CustomMessageHandler.h 경로 추가
 )
 
 qt_add_library(VehicleModule STATIC)

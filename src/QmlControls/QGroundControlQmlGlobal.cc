@@ -65,6 +65,7 @@ QGC_LOGGING_CATEGORY(GuidedActionsControllerLog, "GuidedActionsControllerLog")
 
 QGeoCoordinate QGroundControlQmlGlobal::_coord = QGeoCoordinate(0.0,0.0);
 double QGroundControlQmlGlobal::_zoom = 2;
+QGeoCoordinate QGroundControlQmlGlobal::_fireMissionTargetCoord = QGeoCoordinate();
 
 static QObject* screenToolsControllerSingletonFactory(QQmlEngine*, QJSEngine*)
 {
@@ -311,6 +312,12 @@ void QGroundControlQmlGlobal::setFlightMapZoom(double zoom)
         _zoom = zoom;
         emit flightMapZoomChanged(zoom);
     }
+}
+
+void QGroundControlQmlGlobal::setFireMissionTargetPosition(QGeoCoordinate& coordinate)
+{
+    _fireMissionTargetCoord = coordinate;
+    emit fireMissionTargetPositionChanged(_fireMissionTargetCoord);
 }
 
 QString QGroundControlQmlGlobal::qgcVersion(void)

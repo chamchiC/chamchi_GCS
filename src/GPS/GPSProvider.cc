@@ -219,10 +219,20 @@ GPSBaseStationSupport *GPSProvider::_connectGPS()
         gpsDriver = new GPSDriverSBF(&_callbackEntry, this, &_sensorGps, &_satelliteInfo, kGPSHeadingOffset);
         baudrate = 0;
         break;
-    case GPSType::u_blox:
-        gpsDriver = new GPSDriverUBX(GPSDriverUBX::Interface::UART, &_callbackEntry, this, &_sensorGps, &_satelliteInfo);
+    case GPSType::u_blox: {
+        // 1. 설정 구조체 생성 및 기본값 세팅
+        GPSDriverUBX::Settings ubxSettings{};
+        ubxSettings.mode = GPSDriverUBX::UBXMode::Normal;
+        ubxSettings.uart2_baudrate = 0;
+        ubxSettings.heading_offset = 0.0f;
+        ubxSettings.dynamic_model = 6; // 기본값 (Airborne < 1g)
+
+                // 2. 6번째 인자로 settings 전달
+        gpsDriver = new GPSDriverUBX(GPSDriverUBX::Interface::UART, &_callbackEntry, this, &_sensorGps, &_satelliteInfo, ubxSettings);
         baudrate = 0;
         break;
+    }
+
     case GPSType::femto:
         gpsDriver = new GPSDriverFemto(&_callbackEntry, this, &_sensorGps, &_satelliteInfo);
         baudrate = 0;
