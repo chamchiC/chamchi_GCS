@@ -39,7 +39,7 @@
     "name":             "keepMapCenteredOnVehicle",
     "shortDesc": "Keep map centered on vehicle",
     "type":             "bool",
-    "default":     false
+    "default":     true
 },
 {
     "name":         "showSimpleCameraControl",
