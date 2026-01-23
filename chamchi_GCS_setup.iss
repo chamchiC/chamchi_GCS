@@ -1,13 +1,13 @@
 ﻿[Setup]
 AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
 AppName=Chamchi GCS
-AppVersion=0.1.0
+AppVersion=0.1.1
 AppPublisher=chamchiC
 AppPublisherURL=https://github.com/chamchiC/chamchi_GCS
 DefaultDirName={autopf}\Chamchi GCS
 DefaultGroupName=Chamchi GCS
 OutputDir=C:\Users\coslb
-OutputBaseFilename=chamchi_GCS_v0.1.0_setup
+OutputBaseFilename=chamchi_GCS_v0.1.1_setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
