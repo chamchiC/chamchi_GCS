@@ -33,4 +33,30 @@ Rectangle {
             }
         }
     }
+
+    // 헤더 영역 새로고침 버튼 (오른쪽 상단, 헤더 스타일)
+    Rectangle {
+        id:                 refreshButtonContainer
+        anchors.top:        parent.top
+        anchors.right:      parent.right
+        anchors.topMargin:  -ScreenTools.defaultFontPixelHeight * 2.5
+        anchors.rightMargin: ScreenTools.defaultFontPixelWidth
+        width:              refreshButton.width + ScreenTools.defaultFontPixelWidth * 2
+        height:             ScreenTools.defaultFontPixelHeight * 2
+        color:              qgcPal.buttonHighlight
+        radius:             ScreenTools.defaultFontPixelHeight / 4
+
+        QGCLabel {
+            id:                 refreshButton
+            anchors.centerIn:   parent
+            text:               "새로고침"
+            color:              qgcPal.buttonHighlightText
+        }
+
+        MouseArea {
+            anchors.fill:   parent
+            onClicked:      webView.reload()
+            cursorShape:    Qt.PointingHandCursor
+        }
+    }
 }
