@@ -10,6 +10,10 @@
 #include <QtQuick/QQuickWindow>
 #include <QtWidgets/QApplication>
 
+#ifdef QT_WEBENGINE_LIB
+    #include <QtWebEngineQuick/QtWebEngineQuick>
+#endif
+
 #ifdef Q_OS_MACOS
     #include <QtCore/QProcessEnvironment>
 #endif
@@ -180,6 +184,11 @@ int main(int argc, char *argv[])
     }
 #endif // Q_OS_WIN
 #endif // QT_DEBUG
+
+#ifdef QT_WEBENGINE_LIB
+    // QtWebEngineQuick::initialize() must be called before QGuiApplication/QApplication
+    QtWebEngineQuick::initialize();
+#endif
 
     QGCApplication app(argc, argv, runUnitTests, simpleBootTest);
 

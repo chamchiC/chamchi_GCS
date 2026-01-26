@@ -206,6 +206,7 @@ find_package(Qt6
         Quick3D
         SerialPort
         Test
+        WebEngineQuick
 )
 
 if(LINUX)

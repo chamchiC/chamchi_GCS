@@ -857,6 +857,7 @@ public slots:
      * @param targetComponent 대상 컴포넌트 ID
      */
     Q_INVOKABLE void sendFireCommand(int targetSystem, int targetComponent);
+    Q_INVOKABLE void sendReturnToLaunch(int targetSystem, int targetComponent);
 
 signals:
     void coordinateChanged              (QGeoCoordinate coordinate);

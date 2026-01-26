@@ -22,5 +22,10 @@
             <field type="uint8_t" name="target_system">Target System ID</field>
             <field type="uint8_t" name="target_component">Target Component ID</field>
         </message>
+        <message id="60003" name="RETURN_TO_LAUNCH">
+            <description>Return to launch command</description>
+            <field type="uint8_t" name="target_system">Target System ID</field>
+            <field type="uint8_t" name="target_component">Target Component ID</field>
+        </message>
     </messages>
 </mavlink>

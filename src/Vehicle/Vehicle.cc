@@ -64,6 +64,7 @@
 #include <mavlink/v2.0/custom_messages/mavlink_msg_fire_mission_start.h>
 #include <mavlink/v2.0/custom_messages/mavlink_msg_auto_aim.h>
 #include <mavlink/v2.0/custom_messages/mavlink_msg_fire_command.h>
+#include <mavlink/v2.0/custom_messages/mavlink_msg_return_to_launch.h>
 
 #ifdef QGC_UTM_ADAPTER
 #include "UTMSPVehicle.h"
@@ -1998,6 +1999,43 @@ void Vehicle::sendFireCommand(int targetSystem, int targetComponent)
     sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
     
     qWarning() << "sendFireCommand: Message sent successfully";
+}
+
+void Vehicle::sendReturnToLaunch(int targetSystem, int targetComponent)
+{
+    SharedLinkInterfacePtr sharedLink = vehicleLinkManager()->primaryLink().lock();
+    if (!sharedLink) {
+        qCWarning(VehicleLog) << "sendReturnToLaunch: No priority link available";
+        return;
+    }
+    
+    uint8_t targetSystem_uint8 = static_cast<uint8_t>(qBound(0, targetSystem, 255));
+    uint8_t targetComponent_uint8 = static_cast<uint8_t>(qBound(0, targetComponent, 255));
+    
+    qWarning() << "sendReturnToLaunch: Sending RETURN_TO_LAUNCH (60003) message";
+    qWarning() << "  Target System:" << targetSystem_uint8;
+    qWarning() << "  Target Component:" << targetComponent_uint8;
+    
+    mavlink_message_t msg;
+    mavlink_return_to_launch_t rtl;
+    
+    uint8_t systemId = static_cast<uint8_t>(MAVLinkProtocol::instance()->getSystemId());
+    uint8_t componentId = MAVLinkProtocol::getComponentId();
+    uint8_t channel = sharedLink->mavlinkChannel();
+    
+    rtl.target_system = targetSystem_uint8;
+    rtl.target_component = targetComponent_uint8;
+    
+    mavlink_msg_return_to_launch_encode_chan(
+        systemId,
+        componentId,
+        channel,
+        &msg,
+        &rtl);
+    
+    sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
+    
+    qWarning() << "sendReturnToLaunch: Message sent successfully";
 }
 
 void Vehicle::_missionManagerError(int errorCode, const QString& errorMsg)

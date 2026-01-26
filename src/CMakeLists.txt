@@ -69,6 +69,14 @@ if(NOT QGC_DISABLE_PX4_PLUGIN AND NOT QGC_DISABLE_PX4_PLUGIN_FACTORY)
     )
 endif()
 
+if(TARGET Qt6::WebEngineQuick)
+    target_link_libraries(${CMAKE_PROJECT_NAME}
+        PRIVATE
+            Qt6::WebEngineQuick
+    )
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE QT_WEBENGINE_LIB)
+endif()
+
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(ADSB)

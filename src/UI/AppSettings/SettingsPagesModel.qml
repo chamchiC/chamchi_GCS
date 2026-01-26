@@ -89,6 +89,13 @@ ListModel {
     }
 
     ListElement {
+        name: qsTr("Web GUI")
+        url: "qrc:/qml/QGroundControl/AppSettings/WebGUISettings.qml"
+        iconUrl: "qrc:/InstrumentValueIcons/globe.svg"
+        pageVisible: function() { return true }
+    }
+
+    ListElement {
         name: qsTr("Console")
         url: "qrc:/qml/QGroundControl/Controls/AppMessages.qml"
         iconUrl: "qrc:/InstrumentValueIcons/conversation.svg"

@@ -478,8 +478,8 @@ Item {
                             QGroundControl.showAppMessage(qsTr("No active vehicle"));
                             return;
                         }
-                        // MAV_CMD_NAV_RETURN_TO_LAUNCH = 20 (표준 RTL 명령)
-                        _activeVehicle.sendCommand(1, 20, true);
+                        // Custom RETURN_TO_LAUNCH (60003)
+                        _activeVehicle.sendReturnToLaunch(_targetSystemId, 191);
                         QGroundControl.showAppMessage(qsTr("RTL command sent"));
                     }
                 }
