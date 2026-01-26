@@ -671,7 +671,7 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
         break;
     
     // 커스텀 메시지
-    case 50000: // MAVLINK_MSG_ID_FIRE_MISSION_START
+    case 60000: // MAVLINK_MSG_ID_FIRE_MISSION_START
         // CustomMessageHandler에서 이미 처리됨
         break;
     }
@@ -1800,14 +1800,14 @@ void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double
     uint8_t autoFire_uint8 = static_cast<uint8_t>(qBound(0, autoFire, 255));
     uint8_t maxProjectiles_uint8 = static_cast<uint8_t>(qBound(0, maxProjectiles, 255));
     
-    qCInfo(VehicleLog) << "sendFireMissionStart: Called from QML with parameters:";
-    qCInfo(VehicleLog) << "  targetSystem (QML):" << targetSystem << "-> (converted):" << targetSystem_uint8;
-    qCInfo(VehicleLog) << "  targetComponent (QML):" << targetComponent << "-> (converted):" << targetComponent_uint8;
-    qCInfo(VehicleLog) << "  targetLat (QML):" << targetLat << "-> (converted):" << lat;
-    qCInfo(VehicleLog) << "  targetLon (QML):" << targetLon << "-> (converted):" << lon;
-    qCInfo(VehicleLog) << "  targetAlt (QML):" << targetAlt << "-> (converted):" << alt;
-    qCInfo(VehicleLog) << "  autoFire (QML):" << autoFire << "-> (converted):" << autoFire_uint8;
-    qCInfo(VehicleLog) << "  maxProjectiles (QML):" << maxProjectiles << "-> (converted):" << maxProjectiles_uint8;
+    qWarning() << "sendFireMissionStart: Called from QML with parameters:";
+    qWarning() << "  targetSystem (QML):" << targetSystem << "-> (converted):" << targetSystem_uint8;
+    qWarning() << "  targetComponent (QML):" << targetComponent << "-> (converted):" << targetComponent_uint8;
+    qWarning() << "  targetLat (QML):" << targetLat << "-> (converted):" << lat;
+    qWarning() << "  targetLon (QML):" << targetLon << "-> (converted):" << lon;
+    qWarning() << "  targetAlt (QML):" << targetAlt << "-> (converted):" << alt;
+    qWarning() << "  autoFire (QML):" << autoFire << "-> (converted):" << autoFire_uint8;
+    qWarning() << "  maxProjectiles (QML):" << maxProjectiles << "-> (converted):" << maxProjectiles_uint8;
     
     mavlink_message_t msg;
     mavlink_fire_mission_start_t fireMission;
@@ -1833,18 +1833,18 @@ void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double
     fireMission.auto_fire = autoFire_uint8;
     fireMission.max_projectiles = maxProjectiles_uint8;
     
-    // 인코딩 전 파라미터 로그 (qCInfo로 변경하여 항상 출력)
-    qCInfo(VehicleLog) << "sendFireMissionStart: Preparing message with parameters:";
-    qCInfo(VehicleLog) << "  System ID (sender):" << systemId;
-    qCInfo(VehicleLog) << "  Component ID (sender):" << componentId;
-    qCInfo(VehicleLog) << "  Channel:" << channel;
-    qCInfo(VehicleLog) << "  Target Latitude (degE7):" << fireMission.target_lat << "(" << (fireMission.target_lat / 1e7) << "degrees)";
-    qCInfo(VehicleLog) << "  Target Longitude (degE7):" << fireMission.target_lon << "(" << (fireMission.target_lon / 1e7) << "degrees)";
-    qCInfo(VehicleLog) << "  Target Altitude (m):" << fireMission.target_alt;
-    qCInfo(VehicleLog) << "  Target System:" << fireMission.target_system;
-    qCInfo(VehicleLog) << "  Target Component:" << fireMission.target_component;
-    qCInfo(VehicleLog) << "  Auto Fire:" << fireMission.auto_fire << (fireMission.auto_fire ? "(True)" : "(False)");
-    qCInfo(VehicleLog) << "  Max Projectiles:" << fireMission.max_projectiles;
+    // 인코딩 전 파라미터 로그
+    qWarning() << "sendFireMissionStart: Preparing message with parameters:";
+    qWarning() << "  System ID (sender):" << systemId;
+    qWarning() << "  Component ID (sender):" << componentId;
+    qWarning() << "  Channel:" << channel;
+    qWarning() << "  Target Latitude (degE7):" << fireMission.target_lat << "(" << (fireMission.target_lat / 1e7) << "degrees)";
+    qWarning() << "  Target Longitude (degE7):" << fireMission.target_lon << "(" << (fireMission.target_lon / 1e7) << "degrees)";
+    qWarning() << "  Target Altitude (m):" << fireMission.target_alt;
+    qWarning() << "  Target System:" << fireMission.target_system;
+    qWarning() << "  Target Component:" << fireMission.target_component;
+    qWarning() << "  Auto Fire:" << fireMission.auto_fire << (fireMission.auto_fire ? "(True)" : "(False)");
+    qWarning() << "  Max Projectiles:" << fireMission.max_projectiles;
     
     // 수신 코드와 호환되는 바이트 레이아웃으로 인코딩
     // MAVLink encode_chan 함수는 구조체를 바이트 레이아웃에 맞춰 인코딩함
@@ -1855,13 +1855,13 @@ void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double
         &msg,
         &fireMission);
     
-    // 인코딩 후 메시지 정보 로그 (qCInfo로 변경하여 항상 출력)
-    qCInfo(VehicleLog) << "sendFireMissionStart: Encoded message details:";
-    qCInfo(VehicleLog) << "  Message ID:" << msg.msgid << "(expected: 50000)";
-    qCInfo(VehicleLog) << "  Message Length:" << msg.len << "bytes";
-    qCInfo(VehicleLog) << "  Sequence:" << msg.seq;
-    qCInfo(VehicleLog) << "  System ID:" << msg.sysid;
-    qCInfo(VehicleLog) << "  Component ID:" << msg.compid;
+    // 인코딩 후 메시지 정보 로그
+    qWarning() << "sendFireMissionStart: Encoded message details:";
+    qWarning() << "  Message ID:" << msg.msgid << "(expected: 60000)";
+    qWarning() << "  Message Length:" << msg.len << "bytes";
+    qWarning() << "  Sequence:" << msg.seq;
+    qWarning() << "  System ID:" << msg.sysid;
+    qWarning() << "  Component ID:" << msg.compid;
     
     sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
     
@@ -1883,7 +1883,7 @@ void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double
             linkTypeName = "Unknown";
         }
     }
-    qCInfo(VehicleLog) << "sendFireMissionStart: Message sent successfully via link:" << linkTypeName;
+    qWarning() << "sendFireMissionStart: Message sent successfully via link:" << linkTypeName;
 }
 
 
@@ -1894,7 +1894,7 @@ void Vehicle::sendFireMissionStartAtCurrentPosition(int autoFire, int maxProject
         return;
     }
     
-    qCInfo(VehicleLog) << "sendFireMissionStartAtCurrentPosition: Called from QML";
+    qWarning() << "sendFireMissionStartAtCurrentPosition: Called from QML";
     
     QGeoCoordinate currentPos = coordinate();
     double targetLat = static_cast<double>(currentPos.latitude() * 1e7);
@@ -1919,9 +1919,9 @@ void Vehicle::sendAutoAim(int targetSystem, int targetComponent)
     uint8_t targetSystem_uint8 = static_cast<uint8_t>(qBound(0, targetSystem, 255));
     uint8_t targetComponent_uint8 = static_cast<uint8_t>(qBound(0, targetComponent, 255));
     
-    qCInfo(VehicleLog) << "sendAutoAim: Sending AUTO_AIM (50001) message";
-    qCInfo(VehicleLog) << "  Target System:" << targetSystem_uint8;
-    qCInfo(VehicleLog) << "  Target Component:" << targetComponent_uint8;
+    qWarning() << "sendAutoAim: Sending AUTO_AIM (60001) message";
+    qWarning() << "  Target System:" << targetSystem_uint8;
+    qWarning() << "  Target Component:" << targetComponent_uint8;
     
     mavlink_message_t msg;
     mavlink_auto_aim_t autoAim;
@@ -1940,9 +1940,18 @@ void Vehicle::sendAutoAim(int targetSystem, int targetComponent)
         &msg,
         &autoAim);
     
+    // 디버깅: 메시지 상세 정보
+    qWarning() << "sendAutoAim: Encoded message details:";
+    qWarning() << "  msg.msgid:" << msg.msgid;
+    qWarning() << "  msg.len:" << msg.len << "bytes (expected: 2)";
+    qWarning() << "  msg.sysid:" << msg.sysid;
+    qWarning() << "  msg.compid:" << msg.compid;
+    qWarning() << "  Payload[0] (target_system):" << (int)msg.payload64[0];
+    qWarning() << "  Payload bytes:" << QString("0x%1 0x%2").arg((uint8_t)msg.payload64[0], 2, 16, QChar('0')).arg((uint8_t)(msg.payload64[0] >> 8), 2, 16, QChar('0'));
+    
     sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
     
-    qCInfo(VehicleLog) << "sendAutoAim: Message sent successfully, msgid:" << msg.msgid;
+    qWarning() << "sendAutoAim: Message sent successfully";
 }
 
 void Vehicle::sendFireCommand(int targetSystem, int targetComponent)
@@ -1956,9 +1965,9 @@ void Vehicle::sendFireCommand(int targetSystem, int targetComponent)
     uint8_t targetSystem_uint8 = static_cast<uint8_t>(qBound(0, targetSystem, 255));
     uint8_t targetComponent_uint8 = static_cast<uint8_t>(qBound(0, targetComponent, 255));
     
-    qCInfo(VehicleLog) << "sendFireCommand: Sending FIRE_COMMAND (50002) message";
-    qCInfo(VehicleLog) << "  Target System:" << targetSystem_uint8;
-    qCInfo(VehicleLog) << "  Target Component:" << targetComponent_uint8;
+    qWarning() << "sendFireCommand: Sending FIRE_COMMAND (60002) message";
+    qWarning() << "  Target System:" << targetSystem_uint8;
+    qWarning() << "  Target Component:" << targetComponent_uint8;
     
     mavlink_message_t msg;
     mavlink_fire_command_t fireCmd;
@@ -1977,9 +1986,18 @@ void Vehicle::sendFireCommand(int targetSystem, int targetComponent)
         &msg,
         &fireCmd);
     
+    // 디버깅: 메시지 상세 정보
+    qWarning() << "sendFireCommand: Encoded message details:";
+    qWarning() << "  msg.msgid:" << msg.msgid;
+    qWarning() << "  msg.len:" << msg.len << "bytes (expected: 2)";
+    qWarning() << "  msg.sysid:" << msg.sysid;
+    qWarning() << "  msg.compid:" << msg.compid;
+    qWarning() << "  Payload[0] (target_system):" << (int)msg.payload64[0];
+    qWarning() << "  Payload bytes:" << QString("0x%1 0x%2").arg((uint8_t)msg.payload64[0], 2, 16, QChar('0')).arg((uint8_t)(msg.payload64[0] >> 8), 2, 16, QChar('0'));
+    
     sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
     
-    qCInfo(VehicleLog) << "sendFireCommand: Message sent successfully, msgid:" << msg.msgid;
+    qWarning() << "sendFireCommand: Message sent successfully";
 }
 
 void Vehicle::_missionManagerError(int errorCode, const QString& errorMsg)

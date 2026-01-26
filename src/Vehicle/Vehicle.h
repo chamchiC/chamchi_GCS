@@ -845,14 +845,14 @@ public slots:
     Q_INVOKABLE void sendFireMissionStartAtCurrentPosition(int autoFire, int maxProjectiles);
     
     /**
-     * @brief AUTO_AIM (50001) 메시지를 드론에 송신
+     * @brief AUTO_AIM (60001) 메시지를 드론에 송신
      * @param targetSystem 대상 시스템 ID
      * @param targetComponent 대상 컴포넌트 ID
      */
     Q_INVOKABLE void sendAutoAim(int targetSystem, int targetComponent);
     
     /**
-     * @brief FIRE_COMMAND (50002) 메시지를 드론에 송신
+     * @brief FIRE_COMMAND (60002) 메시지를 드론에 송신
      * @param targetSystem 대상 시스템 ID
      * @param targetComponent 대상 컴포넌트 ID
      */

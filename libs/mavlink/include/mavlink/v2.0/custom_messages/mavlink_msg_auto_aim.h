@@ -1,7 +1,7 @@
 #pragma once
 // MESSAGE AUTO_AIM PACKING
 
-#define MAVLINK_MSG_ID_AUTO_AIM 50001
+#define MAVLINK_MSG_ID_AUTO_AIM 60001
 
 
 typedef struct __mavlink_auto_aim_t {
@@ -11,17 +11,17 @@ typedef struct __mavlink_auto_aim_t {
 
 #define MAVLINK_MSG_ID_AUTO_AIM_LEN 2
 #define MAVLINK_MSG_ID_AUTO_AIM_MIN_LEN 2
-#define MAVLINK_MSG_ID_50001_LEN 2
-#define MAVLINK_MSG_ID_50001_MIN_LEN 2
+#define MAVLINK_MSG_ID_60001_LEN 2
+#define MAVLINK_MSG_ID_60001_MIN_LEN 2
 
-#define MAVLINK_MSG_ID_AUTO_AIM_CRC 90
-#define MAVLINK_MSG_ID_50001_CRC 90
+#define MAVLINK_MSG_ID_AUTO_AIM_CRC 101
+#define MAVLINK_MSG_ID_60001_CRC 101
 
 
 
 #if MAVLINK_COMMAND_24BIT
 #define MAVLINK_MESSAGE_INFO_AUTO_AIM { \
-    50001, \
+    60001, \
     "AUTO_AIM", \
     2, \
     {  { "target_system", NULL, MAVLINK_TYPE_UINT8_T, 0, 0, offsetof(mavlink_auto_aim_t, target_system) }, \

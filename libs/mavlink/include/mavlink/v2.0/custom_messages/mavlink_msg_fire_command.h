@@ -1,7 +1,7 @@
 #pragma once
 // MESSAGE FIRE_COMMAND PACKING
 
-#define MAVLINK_MSG_ID_FIRE_COMMAND 50002
+#define MAVLINK_MSG_ID_FIRE_COMMAND 60002
 
 
 typedef struct __mavlink_fire_command_t {
@@ -11,17 +11,17 @@ typedef struct __mavlink_fire_command_t {
 
 #define MAVLINK_MSG_ID_FIRE_COMMAND_LEN 2
 #define MAVLINK_MSG_ID_FIRE_COMMAND_MIN_LEN 2
-#define MAVLINK_MSG_ID_50002_LEN 2
-#define MAVLINK_MSG_ID_50002_MIN_LEN 2
+#define MAVLINK_MSG_ID_60002_LEN 2
+#define MAVLINK_MSG_ID_60002_MIN_LEN 2
 
-#define MAVLINK_MSG_ID_FIRE_COMMAND_CRC 191
-#define MAVLINK_MSG_ID_50002_CRC 191
+#define MAVLINK_MSG_ID_FIRE_COMMAND_CRC 102
+#define MAVLINK_MSG_ID_60002_CRC 102
 
 
 
 #if MAVLINK_COMMAND_24BIT
 #define MAVLINK_MESSAGE_INFO_FIRE_COMMAND { \
-    50002, \
+    60002, \
     "FIRE_COMMAND", \
     2, \
     {  { "target_system", NULL, MAVLINK_TYPE_UINT8_T, 0, 0, offsetof(mavlink_fire_command_t, target_system) }, \

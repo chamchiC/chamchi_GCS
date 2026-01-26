@@ -59,5 +59,5 @@ private:
     void _handleFireMissionStart(const mavlink_message_t& message);
 
     // 메시지 ID 상수 정의 (MAVLink 헤더에 정의된 값 사용)
-    enum { MSG_ID_FIRE_MISSION_START = 50000 };
+    enum { MSG_ID_FIRE_MISSION_START = 60000 };
 };

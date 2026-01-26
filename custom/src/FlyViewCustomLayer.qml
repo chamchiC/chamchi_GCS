@@ -406,7 +406,7 @@ Item {
                         }
                         try {
                             _activeVehicle.sendAutoAim(_targetSystemId, 191);
-                            QGroundControl.showAppMessage(qsTr("Auto Aim (50001) sent to ID: %1").arg(_targetSystemId));
+                            QGroundControl.showAppMessage(qsTr("Auto Aim (60001) sent to ID: %1").arg(_targetSystemId));
                         } catch(e) {
                             console.error("Error:", e);
                             QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
@@ -443,7 +443,7 @@ Item {
                         }
                         try {
                             _activeVehicle.sendFireCommand(_targetSystemId, 191);
-                            QGroundControl.showAppMessage(qsTr("Fire Command (50002) sent to ID: %1").arg(_targetSystemId));
+                            QGroundControl.showAppMessage(qsTr("Fire Command (60002) sent to ID: %1").arg(_targetSystemId));
                         } catch(e) {
                             console.error("Error:", e);
                             QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));

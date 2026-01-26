@@ -1,7 +1,7 @@
 #pragma once
 // MESSAGE FIRE_MISSION_START PACKING
 
-#define MAVLINK_MSG_ID_FIRE_MISSION_START 50000
+#define MAVLINK_MSG_ID_FIRE_MISSION_START 60000
 
 
 typedef struct __mavlink_fire_mission_start_t {
@@ -16,17 +16,17 @@ typedef struct __mavlink_fire_mission_start_t {
 
 #define MAVLINK_MSG_ID_FIRE_MISSION_START_LEN 16
 #define MAVLINK_MSG_ID_FIRE_MISSION_START_MIN_LEN 16
-#define MAVLINK_MSG_ID_50000_LEN 16
-#define MAVLINK_MSG_ID_50000_MIN_LEN 16
+#define MAVLINK_MSG_ID_60000_LEN 16
+#define MAVLINK_MSG_ID_60000_MIN_LEN 16
 
 #define MAVLINK_MSG_ID_FIRE_MISSION_START_CRC 100
-#define MAVLINK_MSG_ID_50000_CRC 100
+#define MAVLINK_MSG_ID_60000_CRC 100
 
 
 
 #if MAVLINK_COMMAND_24BIT
 #define MAVLINK_MESSAGE_INFO_FIRE_MISSION_START { \
-    50000, \
+    60000, \
     "FIRE_MISSION_START", \
     7, \
     {  { "target_system", NULL, MAVLINK_TYPE_UINT8_T, 0, 12, offsetof(mavlink_fire_mission_start_t, target_system) }, \

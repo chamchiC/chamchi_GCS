@@ -2,7 +2,7 @@
 <mavlink>
     <include>common.xml</include>
     <messages>
-        <message id="50000" name="FIRE_MISSION_START">
+        <message id="60000" name="FIRE_MISSION_START">
             <description>Start a fire mission command</description>
             <field type="uint8_t" name="target_system">Target System ID</field>
             <field type="uint8_t" name="target_component">Target Component ID</field>
@@ -12,12 +12,12 @@
             <field type="uint8_t" name="auto_fire">Auto fire enabled (0: False, 1: True)</field>
             <field type="uint8_t" name="max_projectiles">Maximum number of projectiles</field>
         </message>
-        <message id="50001" name="AUTO_AIM">
+        <message id="60001" name="AUTO_AIM">
             <description>Auto aim command</description>
             <field type="uint8_t" name="target_system">Target System ID</field>
             <field type="uint8_t" name="target_component">Target Component ID</field>
         </message>
-        <message id="50002" name="FIRE_COMMAND">
+        <message id="60002" name="FIRE_COMMAND">
             <description>Fire command</description>
             <field type="uint8_t" name="target_system">Target System ID</field>
             <field type="uint8_t" name="target_component">Target Component ID</field>
