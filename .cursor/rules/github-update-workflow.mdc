@@ -1,0 +1,98 @@
+---
+description: Chamchi GCS GitHub 업데이트 워크플로우
+alwaysApply: true
+---
+
+# GitHub 업데이트 규칙
+
+"깃허브 업데이트해줘" 또는 "깃허브에 올려줘" 요청 시 아래 프로세스 수행.
+
+## 버전 규칙
+
+| 변경 종류 | 버전 변경 |
+|-----------|-----------|
+| 버그 수정, 작은 변경 | v0.1.0 → v0.1.1 |
+| 새 기능, 큰 변경 | v0.1.x → v0.2.0 |
+| 정식 릴리즈 | v0.x.x → v1.0.0 |
+
+## 프로세스
+
+### 1. 코드 커밋 & 푸시
+```powershell
+git add -A
+git commit -m "변경 내용 요약"
+git push origin main
+```
+
+### 2. 빌드 (백그라운드)
+```powershell
+cmake --build "build/Desktop_Qt_6_8_3_MSVC2022_64bit-Release" --config Release
+```
+
+### 3. 실행파일 복사
+```powershell
+Copy-Item "build/Desktop_Qt_6_8_3_MSVC2022_64bit-Release/Release/Chamchi_GCS.exe" "C:\chamchi_GCS\chamchi_GCS.exe" -Force
+```
+
+### 4. ZIP 생성
+```powershell
+Compress-Archive -Path "C:\chamchi_GCS\*" -DestinationPath "$env:USERPROFILE\chamchi_GCS_vX.X.X.zip" -Force
+```
+
+### 5. 설치파일 생성 (Inno Setup)
+```powershell
+$version = "X.X.X"
+$script = @"
+[Setup]
+AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+AppName=Chamchi GCS
+AppVersion=$version
+AppPublisher=chamchiC
+AppPublisherURL=https://github.com/chamchiC/chamchi_GCS
+DefaultDirName={autopf}\Chamchi GCS
+DefaultGroupName=Chamchi GCS
+OutputDir=C:\Users\coslb
+OutputBaseFilename=chamchi_GCS_v${version}_setup
+Compression=lzma2
+SolidCompression=yes
+WizardStyle=modern
+
+[Languages]
+Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "바탕화면에 바로가기 만들기"; GroupDescription: "추가 옵션:"
+
+[Files]
+Source: "C:\chamchi_GCS\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{group}\Chamchi GCS"; Filename: "{app}\chamchi_GCS.exe"
+Name: "{group}\Chamchi GCS 제거"; Filename: "{uninstallexe}"
+Name: "{commondesktop}\Chamchi GCS"; Filename: "{app}\chamchi_GCS.exe"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\chamchi_GCS.exe"; Description: "Chamchi GCS 실행"; Flags: nowait postinstall skipifsilent
+"@
+$script | Out-File -FilePath "$env:USERPROFILE\chamchi_GCS_setup.iss" -Encoding UTF8
+& "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" "$env:USERPROFILE\chamchi_GCS_setup.iss"
+```
+
+### 6. GitHub 릴리즈
+```powershell
+git tag -a vX.X.X -m "vX.X.X" --force
+git push origin vX.X.X --force
+gh release delete vX.X.X -y 2>$null
+gh release create vX.X.X "$env:USERPROFILE\chamchi_GCS_vX.X.X.zip" "$env:USERPROFILE\chamchi_GCS_vX.X.X_setup.exe" --title "vX.X.X" --notes "변경 내용"
+```
+
+## 릴리즈 노트
+
+- 간단하게 변경 내용만 작성
+- 예: "초기 릴리즈", "아이콘 수정", "드론 중심 지도 기본값 활성화"
+
+## 저장소 정보
+
+- GitHub: https://github.com/chamchiC/chamchi_GCS
+- 로컬 실행파일: C:\chamchi_GCS\
