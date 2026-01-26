@@ -62,6 +62,8 @@
 #include "MAVLinkLib.h"
 // 커스텀 메시지 헤더는 MAVLinkLib.h 이후에 include (MAVLink 기본 타입이 먼저 정의되어야 함)
 #include <mavlink/v2.0/custom_messages/mavlink_msg_fire_mission_start.h>
+#include <mavlink/v2.0/custom_messages/mavlink_msg_auto_aim.h>
+#include <mavlink/v2.0/custom_messages/mavlink_msg_fire_command.h>
 
 #ifdef QGC_UTM_ADAPTER
 #include "UTMSPVehicle.h"
@@ -1904,6 +1906,80 @@ void Vehicle::sendFireMissionStartAtCurrentPosition(int autoFire, int maxProject
     
     // 현재 Vehicle의 ID와 Component ID를 사용
     sendFireMissionStart(_id, _compID, targetLat, targetLon, targetAlt, autoFire, maxProjectiles);
+}
+
+void Vehicle::sendAutoAim(int targetSystem, int targetComponent)
+{
+    SharedLinkInterfacePtr sharedLink = vehicleLinkManager()->primaryLink().lock();
+    if (!sharedLink) {
+        qCWarning(VehicleLog) << "sendAutoAim: No priority link available";
+        return;
+    }
+    
+    uint8_t targetSystem_uint8 = static_cast<uint8_t>(qBound(0, targetSystem, 255));
+    uint8_t targetComponent_uint8 = static_cast<uint8_t>(qBound(0, targetComponent, 255));
+    
+    qCInfo(VehicleLog) << "sendAutoAim: Sending AUTO_AIM (50001) message";
+    qCInfo(VehicleLog) << "  Target System:" << targetSystem_uint8;
+    qCInfo(VehicleLog) << "  Target Component:" << targetComponent_uint8;
+    
+    mavlink_message_t msg;
+    mavlink_auto_aim_t autoAim;
+    
+    uint8_t systemId = static_cast<uint8_t>(MAVLinkProtocol::instance()->getSystemId());
+    uint8_t componentId = MAVLinkProtocol::getComponentId();
+    uint8_t channel = sharedLink->mavlinkChannel();
+    
+    autoAim.target_system = targetSystem_uint8;
+    autoAim.target_component = targetComponent_uint8;
+    
+    mavlink_msg_auto_aim_encode_chan(
+        systemId,
+        componentId,
+        channel,
+        &msg,
+        &autoAim);
+    
+    sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
+    
+    qCInfo(VehicleLog) << "sendAutoAim: Message sent successfully, msgid:" << msg.msgid;
+}
+
+void Vehicle::sendFireCommand(int targetSystem, int targetComponent)
+{
+    SharedLinkInterfacePtr sharedLink = vehicleLinkManager()->primaryLink().lock();
+    if (!sharedLink) {
+        qCWarning(VehicleLog) << "sendFireCommand: No priority link available";
+        return;
+    }
+    
+    uint8_t targetSystem_uint8 = static_cast<uint8_t>(qBound(0, targetSystem, 255));
+    uint8_t targetComponent_uint8 = static_cast<uint8_t>(qBound(0, targetComponent, 255));
+    
+    qCInfo(VehicleLog) << "sendFireCommand: Sending FIRE_COMMAND (50002) message";
+    qCInfo(VehicleLog) << "  Target System:" << targetSystem_uint8;
+    qCInfo(VehicleLog) << "  Target Component:" << targetComponent_uint8;
+    
+    mavlink_message_t msg;
+    mavlink_fire_command_t fireCmd;
+    
+    uint8_t systemId = static_cast<uint8_t>(MAVLinkProtocol::instance()->getSystemId());
+    uint8_t componentId = MAVLinkProtocol::getComponentId();
+    uint8_t channel = sharedLink->mavlinkChannel();
+    
+    fireCmd.target_system = targetSystem_uint8;
+    fireCmd.target_component = targetComponent_uint8;
+    
+    mavlink_msg_fire_command_encode_chan(
+        systemId,
+        componentId,
+        channel,
+        &msg,
+        &fireCmd);
+    
+    sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
+    
+    qCInfo(VehicleLog) << "sendFireCommand: Message sent successfully, msgid:" << msg.msgid;
 }
 
 void Vehicle::_missionManagerError(int errorCode, const QString& errorMsg)

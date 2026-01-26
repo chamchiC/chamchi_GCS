@@ -112,6 +112,29 @@ ApplicationWindow {
 
     readonly property real      _topBottomMargins:          ScreenTools.defaultFontPixelHeight * 0.5
 
+    // Custom Empty Window 관리
+    property var _customWindowInstance: null
+    
+    Component {
+        id: customWindowComponent
+        CustomEmptyWindow { }
+    }
+    
+    function openCustomWindow() {
+        if (_customWindowInstance === null) {
+            _customWindowInstance = customWindowComponent.createObject(null)
+            if (_customWindowInstance) {
+                _customWindowInstance.closing.connect(function() {
+                    _customWindowInstance = null
+                })
+                _customWindowInstance.show()
+            }
+        } else {
+            _customWindowInstance.raise()
+            _customWindowInstance.requestActivate()
+        }
+    }
+
     //-------------------------------------------------------------------------
     //-- Global Scope Variables
 
@@ -432,6 +455,18 @@ ApplicationWindow {
                                     drawer.close()
                                     mainWindow.showSettingsTool()
                                 }
+                            }
+                        }
+
+                        SubMenuButton {
+                            id:                 openWindowButton
+                            height:             toolSelectDialog._toolButtonHeight
+                            Layout.fillWidth:   true
+                            text:               qsTr("Open Window")
+                            imageResource:      "/res/waves.svg"
+                            onClicked: {
+                                drawer.close()
+                                mainWindow.openCustomWindow()
                             }
                         }
 
