@@ -120,6 +120,8 @@ Window {
     function toggleFullScreen() {
         if (visibility === Window.FullScreen) {
             visibility = Window.Windowed
+            customWindow.width = 1280
+            customWindow.height = 720
         } else {
             visibility = Window.FullScreen
         }
