@@ -483,11 +483,14 @@ ApplicationWindow {
                             onClicked: {
                                 mainWindow.closeIndicatorDrawer()
                                 if (mainWindow.visibility === Window.FullScreen) {
+                                    // 현재 스크린 정보 저장
+                                    var currentScreen = mainWindow.screen
                                     mainWindow.visibility = Window.Windowed
                                     mainWindow.width = 1280
                                     mainWindow.height = 720
-                                    mainWindow.x = (mainWindow.screen.width - 1280) / 2
-                                    mainWindow.y = (mainWindow.screen.height - 720) / 2
+                                    // 현재 모니터의 중앙에 배치 (virtualX/Y는 모니터의 절대 좌표)
+                                    mainWindow.x = currentScreen.virtualX + (currentScreen.width - 1280) / 2
+                                    mainWindow.y = currentScreen.virtualY + (currentScreen.height - 720) / 2
                                 } else {
                                     mainWindow.visibility = Window.FullScreen
                                 }

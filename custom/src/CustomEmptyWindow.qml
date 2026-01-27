@@ -119,9 +119,14 @@ Window {
     // 전체화면 토글 함수
     function toggleFullScreen() {
         if (visibility === Window.FullScreen) {
+            // 현재 스크린 정보 저장
+            var currentScreen = customWindow.screen
             visibility = Window.Windowed
             customWindow.width = 1280
             customWindow.height = 720
+            // 현재 모니터의 중앙에 배치 (virtualX/Y는 모니터의 절대 좌표)
+            customWindow.x = currentScreen.virtualX + (currentScreen.width - 1280) / 2
+            customWindow.y = currentScreen.virtualY + (currentScreen.height - 720) / 2
         } else {
             visibility = Window.FullScreen
         }

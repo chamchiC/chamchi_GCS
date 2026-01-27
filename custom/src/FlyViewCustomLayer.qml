@@ -261,6 +261,7 @@ Item {
 
     // Fire Mission 설정값
     property int _targetSystemId: 1
+    property real _targetAltitude: 2.0  // 목표 고도 (미터)
     
     // 버튼 크기 (화면 비율 기준)
     property real _buttonHeight: parent.height * 0.08  // 화면 높이의 8%
@@ -324,6 +325,56 @@ Item {
                 }
             }
             
+            // 목표 고도 입력
+            Rectangle {
+                id: altitudePanel
+                width: altitudeRow.width + ScreenTools.defaultFontPixelWidth * 3
+                height: _buttonHeight
+                color: "#9C27B0"  // 보라색
+                radius: ScreenTools.defaultFontPixelWidth
+                border.color: "#7B1FA2"
+                border.width: 2
+                
+                Row {
+                    id: altitudeRow
+                    anchors.centerIn: parent
+                    spacing: ScreenTools.defaultFontPixelWidth
+                    
+                    Text {
+                        text: qsTr("ALT:")
+                        color: "white"
+                        font.pixelSize: _buttonFontSize
+                        font.bold: true
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    QGCTextField {
+                        id: targetAltitudeField
+                        width: ScreenTools.defaultFontPixelWidth * 8
+                        height: _buttonHeight * 0.7
+                        text: _targetAltitude.toFixed(1)
+                        font.pixelSize: _buttonFontSize
+                        font.bold: true
+                        inputMethodHints: Qt.ImhFormattedNumbersOnly
+                        validator: DoubleValidator { bottom: 0; top: 10000; decimals: 1 }
+                        onEditingFinished: {
+                            var val = parseFloat(text)
+                            if (!isNaN(val) && val >= 0 && val <= 10000) {
+                                _targetAltitude = val
+                            } else {
+                                text = _targetAltitude.toFixed(1)
+                            }
+                        }
+                    }
+                    Text {
+                        text: qsTr("m")
+                        color: "white"
+                        font.pixelSize: _buttonFontSize
+                        font.bold: true
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+            }
+            
             // 미션 시작 버튼
             Rectangle {
                 id: missionStartButton
@@ -357,12 +408,15 @@ Item {
                             return;
                         }
                         
+                        // 위도, 경도를 degE7로 변환
+                        var targetLat = savedTargetPos.latitude * 1e7;
+                        var targetLon = savedTargetPos.longitude * 1e7;
                         var autoFire = 1;
                         var maxProjectiles = 10;
                         
                         try {
-                            _activeVehicle.sendFireMissionStart(_targetSystemId, 191, 0, 0, 2, autoFire, maxProjectiles);
-                            QGroundControl.showAppMessage(qsTr("Mission Start command sent"));
+                            _activeVehicle.sendFireMissionStart(_targetSystemId, 191, targetLat, targetLon, _targetAltitude, autoFire, maxProjectiles);
+                            QGroundControl.showAppMessage(qsTr("Mission Start: Lat %1, Lon %2, Alt %3m").arg(savedTargetPos.latitude.toFixed(6)).arg(savedTargetPos.longitude.toFixed(6)).arg(_targetAltitude.toFixed(1)));
                         } catch(e) {
                             console.error("Error:", e);
                             QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
