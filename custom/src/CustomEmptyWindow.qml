@@ -12,6 +12,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Window
 import QtMultimedia
+import QtWebEngine
 
 import QGroundControl
 import QGroundControl.Controls
@@ -36,6 +37,12 @@ Window {
     property string videoUrl1: "http://192.168.100.11:8080/video_feed"
     property string videoUrl2: "http://192.168.100.21:8080/video_feed"
     property string videoUrl3: "http://192.168.100.31:8080/video_feed"
+    
+    // Web GUI URL
+    property string webGuiUrl: "http://192.168.100.11:5000"
+    
+    // 현재 탭 (0: 카메라, 1: WebGUI)
+    property int currentTab: 0
     
     // 자동 재연결 활성화 여부
     property bool autoReconnect: true
@@ -182,18 +189,64 @@ Window {
         anchors.margins: 5
         spacing: 5
         
-        // 상단 버튼 영역 (위로 이동)
+        // 상단 버튼 영역
         RowLayout {
             Layout.fillWidth: true
             spacing: ScreenTools.defaultFontPixelWidth
             
-            QGCButton {
-                text: qsTr("Refresh")
-                onClicked: refreshAllVideos()
+            // 탭 버튼들
+            Row {
+                spacing: 2
+                
+                Rectangle {
+                    width: ScreenTools.defaultFontPixelWidth * 8
+                    height: ScreenTools.defaultFontPixelHeight * 2
+                    color: currentTab === 0 ? qgcPal.buttonHighlight : qgcPal.button
+                    radius: ScreenTools.defaultFontPixelHeight / 4
+                    
+                    QGCLabel {
+                        anchors.centerIn: parent
+                        text: "카메라"
+                        color: currentTab === 0 ? qgcPal.buttonHighlightText : qgcPal.buttonText
+                    }
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: currentTab = 0
+                        cursorShape: Qt.PointingHandCursor
+                    }
+                }
+                
+                Rectangle {
+                    width: ScreenTools.defaultFontPixelWidth * 8
+                    height: ScreenTools.defaultFontPixelHeight * 2
+                    color: currentTab === 1 ? qgcPal.buttonHighlight : qgcPal.button
+                    radius: ScreenTools.defaultFontPixelHeight / 4
+                    
+                    QGCLabel {
+                        anchors.centerIn: parent
+                        text: "Web GUI"
+                        color: currentTab === 1 ? qgcPal.buttonHighlightText : qgcPal.buttonText
+                    }
+                    
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: currentTab = 1
+                        cursorShape: Qt.PointingHandCursor
+                    }
+                }
             }
             
-            // 자동 재연결 토글
+            Item { width: ScreenTools.defaultFontPixelWidth * 2 }
+            
+            QGCButton {
+                text: currentTab === 0 ? qsTr("Refresh") : qsTr("새로고침")
+                onClicked: currentTab === 0 ? refreshAllVideos() : webView.reload()
+            }
+            
+            // 자동 재연결 토글 (카메라 탭에서만 표시)
             QGCCheckBox {
+                visible: currentTab === 0
                 text: qsTr("Auto Reconnect")
                 checked: autoReconnect
                 onClicked: autoReconnect = checked
@@ -207,12 +260,33 @@ Window {
             }
         }
         
-        // 비디오 영역 (가로 배치)
+        // WebGUI 영역 (탭 1)
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            color: "white"
+            visible: currentTab === 1
+            
+            WebEngineView {
+                id: webView
+                anchors.fill: parent
+                url: webGuiUrl
+                
+                onLoadingChanged: function(loadRequest) {
+                    if (loadRequest.status === WebEngineView.LoadFailedStatus) {
+                        console.warn("Web GUI: Failed to load " + loadRequest.url)
+                    }
+                }
+            }
+        }
+        
+        // 비디오 영역 (가로 배치) - 탭 0
         Row {
             id: videoRow
             Layout.fillWidth: true
             Layout.fillHeight: true
             spacing: 5
+            visible: currentTab === 0
             
             // === 첫 번째 비디오 ===
             Rectangle {

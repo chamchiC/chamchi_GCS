@@ -7,6 +7,11 @@ alwaysApply: true
 
 "깃허브 업데이트해줘" 또는 "깃허브에 올려줘" 요청 시 아래 프로세스 수행.
 
+## 중요 사항
+
+- **빌드는 AI가 직접 수행** (빌드 실패 시에만 사용자에게 빌드 요청할 것)
+- 모든 단계를 AI가 순차적으로 실행
+
 ## 버전 규칙
 
 | 변경 종류 | 버전 변경 |
@@ -24,15 +29,23 @@ git commit -m "변경 내용 요약"
 git push origin main
 ```
 
-### 2. 빌드 (백그라운드)
+### 2. 빌드 (AI가 직접 실행, 보통은 'ninja: no work to do.' 메시지가 응답될 것임)
 ```powershell
-cmake --build "build/Desktop_Qt_6_8_3_MSVC2022_64bit-Release" --config Release
+C:\Qt\Tools\CMake_64\bin\cmake.exe --build "build/Desktop_Qt_6_8_3_MSVC2022_64bit-Release" --config Release
 ```
+- block_until_ms: 600000 (10분 대기)
+- 작업 디렉토리: c:\Users\coslb\qgroundcontrol_v4
 
-### 3. 실행파일 복사
+### 3. 배포 폴더 준비
 ```powershell
+# 기존 폴더 삭제 후 구성요소 복사
+Remove-Item "C:\chamchi_GCS" -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item "C:\chamchi_GCS_Deploy_Files" "C:\chamchi_GCS" -Recurse -Force
+
+# 실행파일 복사
 Copy-Item "build/Desktop_Qt_6_8_3_MSVC2022_64bit-Release/Release/Chamchi_GCS.exe" "C:\chamchi_GCS\chamchi_GCS.exe" -Force
 ```
+- 구성요소 폴더: C:\chamchi_GCS_Deploy_Files (DLL 193개, 폴더 19개, 672MB)
 
 ### 4. ZIP 생성
 ```powershell
@@ -95,4 +108,5 @@ gh release create vX.X.X "$env:USERPROFILE\chamchi_GCS_vX.X.X.zip" "$env:USERPRO
 ## 저장소 정보
 
 - GitHub: https://github.com/chamchiC/chamchi_GCS
-- 로컬 실행파일: C:\chamchi_GCS\
+- 로컬 배포 폴더: C:\chamchi_GCS\
+- 구성요소 폴더: C:\chamchi_GCS_Deploy_Files\ (DLL, 플러그인 등 - exe 제외)
