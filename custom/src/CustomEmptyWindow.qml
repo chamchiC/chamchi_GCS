@@ -255,6 +255,11 @@ Window {
             Item { Layout.fillWidth: true }
             
             QGCButton {
+                text: customWindow.visibility === Window.FullScreen ? qsTr("창모드") : qsTr("전체화면")
+                onClicked: toggleFullScreen()
+            }
+            
+            QGCButton {
                 text: qsTr("Close")
                 onClicked: customWindow.close()
             }
@@ -270,7 +275,7 @@ Window {
             WebEngineView {
                 id: webView
                 anchors.fill: parent
-                url: webGuiUrl
+                url: currentTab === 1 ? webGuiUrl : ""  // 탭이 활성화될 때만 연결
                 
                 onLoadingChanged: function(loadRequest) {
                     if (loadRequest.status === WebEngineView.LoadFailedStatus) {

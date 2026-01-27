@@ -462,11 +462,15 @@ ApplicationWindow {
                             id:                 openWindowButton
                             height:             toolSelectDialog._toolButtonHeight
                             Layout.fillWidth:   true
-                            text:               qsTr("Open Window")
+                            text:               _customWindowInstance !== null ? qsTr("Close Window") : qsTr("Open Window")
                             imageResource:      "/res/waves.svg"
                             onClicked: {
                                 drawer.close()
-                                mainWindow.openCustomWindow()
+                                if (_customWindowInstance !== null) {
+                                    _customWindowInstance.close()
+                                } else {
+                                    mainWindow.openCustomWindow()
+                                }
                             }
                         }
 

@@ -17,15 +17,18 @@ import QGroundControl.Palette
 import QGroundControl.ScreenTools
 
 Rectangle {
+    id: root
     color:          qgcPal.window
     anchors.fill:   parent
+    
+    property string webGuiUrl: "http://192.168.100.11:5000"
 
     QGCPalette { id: qgcPal; colorGroupEnabled: true }
 
     WebEngineView {
         id:             webView
         anchors.fill:   parent
-        url:            "http://192.168.100.11:5000"
+        url:            root.visible ? webGuiUrl : ""  // 화면이 보일 때만 연결
         
         onLoadingChanged: function(loadRequest) {
             if (loadRequest.status === WebEngineView.LoadFailedStatus) {
