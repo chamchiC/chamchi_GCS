@@ -70,6 +70,42 @@ static inline uint16_t mavlink_msg_return_to_launch_pack(uint8_t system_id, uint
 }
 
 /**
+ * @brief Pack a return_to_launch message
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ *
+ * @param target_system  Target System ID
+ * @param target_component  Target Component ID
+ * @return length of the message in bytes (excluding serial stream start sign)
+ */
+static inline uint16_t mavlink_msg_return_to_launch_pack_status(uint8_t system_id, uint8_t component_id, mavlink_status_t *_status, mavlink_message_t* msg,
+                               uint8_t target_system, uint8_t target_component)
+{
+#if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
+    char buf[MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN];
+    _mav_put_uint8_t(buf, 0, target_system);
+    _mav_put_uint8_t(buf, 1, target_component);
+
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), buf, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN);
+#else
+    mavlink_return_to_launch_t packet;
+    packet.target_system = target_system;
+    packet.target_component = target_component;
+
+        memcpy(_MAV_PAYLOAD_NON_CONST(msg), &packet, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN);
+#endif
+
+    msg->msgid = MAVLINK_MSG_ID_RETURN_TO_LAUNCH;
+#if MAVLINK_CRC_EXTRA
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_MIN_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_CRC);
+#else
+    return mavlink_finalize_message_buffer(msg, system_id, component_id, _status, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_MIN_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN);
+#endif
+}
+
+/**
  * @brief Pack a return_to_launch message on a channel
  * @param system_id ID of this system
  * @param component_id ID of this component (e.g. 200 for IMU)
@@ -81,7 +117,7 @@ static inline uint16_t mavlink_msg_return_to_launch_pack(uint8_t system_id, uint
  */
 static inline uint16_t mavlink_msg_return_to_launch_pack_chan(uint8_t system_id, uint8_t component_id, uint8_t chan,
                                mavlink_message_t* msg,
-                                   uint8_t target_system, uint8_t target_component)
+                                   uint8_t target_system,uint8_t target_component)
 {
 #if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
     char buf[MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN];
@@ -128,7 +164,90 @@ static inline uint16_t mavlink_msg_return_to_launch_encode_chan(uint8_t system_i
     return mavlink_msg_return_to_launch_pack_chan(system_id, component_id, chan, msg, return_to_launch->target_system, return_to_launch->target_component);
 }
 
+/**
+ * @brief Encode a return_to_launch struct with provided status structure
+ *
+ * @param system_id ID of this system
+ * @param component_id ID of this component (e.g. 200 for IMU)
+ * @param status MAVLink status structure
+ * @param msg The MAVLink message to compress the data into
+ * @param return_to_launch C-struct to read the message contents from
+ */
+static inline uint16_t mavlink_msg_return_to_launch_encode_status(uint8_t system_id, uint8_t component_id, mavlink_status_t* _status, mavlink_message_t* msg, const mavlink_return_to_launch_t* return_to_launch)
+{
+    return mavlink_msg_return_to_launch_pack_status(system_id, component_id, _status, msg,  return_to_launch->target_system, return_to_launch->target_component);
+}
+
+/**
+ * @brief Send a return_to_launch message
+ * @param chan MAVLink channel to send the message
+ *
+ * @param target_system  Target System ID
+ * @param target_component  Target Component ID
+ */
+#ifdef MAVLINK_USE_CONVENIENCE_FUNCTIONS
+
+static inline void mavlink_msg_return_to_launch_send(mavlink_channel_t chan, uint8_t target_system, uint8_t target_component)
+{
+#if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
+    char buf[MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN];
+    _mav_put_uint8_t(buf, 0, target_system);
+    _mav_put_uint8_t(buf, 1, target_component);
+
+    _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_RETURN_TO_LAUNCH, buf, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_MIN_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_CRC);
+#else
+    mavlink_return_to_launch_t packet;
+    packet.target_system = target_system;
+    packet.target_component = target_component;
+
+    _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_RETURN_TO_LAUNCH, (const char *)&packet, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_MIN_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_CRC);
+#endif
+}
+
+/**
+ * @brief Send a return_to_launch message
+ * @param chan MAVLink channel to send the message
+ * @param struct The MAVLink struct to serialize
+ */
+static inline void mavlink_msg_return_to_launch_send_struct(mavlink_channel_t chan, const mavlink_return_to_launch_t* return_to_launch)
+{
+#if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
+    mavlink_msg_return_to_launch_send(chan, return_to_launch->target_system, return_to_launch->target_component);
+#else
+    _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_RETURN_TO_LAUNCH, (const char *)return_to_launch, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_MIN_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_CRC);
+#endif
+}
+
+#if MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN <= MAVLINK_MAX_PAYLOAD_LEN
+/*
+  This variant of _send() can be used to save stack space by reusing
+  memory from the receive buffer.  The caller provides a
+  mavlink_message_t which is the size of a full mavlink message. This
+  is usually the receive buffer for the channel, and allows a reply to an
+  incoming message with minimum stack space usage.
+ */
+static inline void mavlink_msg_return_to_launch_send_buf(mavlink_message_t *msgbuf, mavlink_channel_t chan,  uint8_t target_system, uint8_t target_component)
+{
+#if MAVLINK_NEED_BYTE_SWAP || !MAVLINK_ALIGNED_FIELDS
+    char *buf = (char *)msgbuf;
+    _mav_put_uint8_t(buf, 0, target_system);
+    _mav_put_uint8_t(buf, 1, target_component);
+
+    _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_RETURN_TO_LAUNCH, buf, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_MIN_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_CRC);
+#else
+    mavlink_return_to_launch_t *packet = (mavlink_return_to_launch_t *)msgbuf;
+    packet->target_system = target_system;
+    packet->target_component = target_component;
+
+    _mav_finalize_message_chan_send(chan, MAVLINK_MSG_ID_RETURN_TO_LAUNCH, (const char *)packet, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_MIN_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_LEN, MAVLINK_MSG_ID_RETURN_TO_LAUNCH_CRC);
+#endif
+}
+#endif
+
+#endif
+
 // MESSAGE RETURN_TO_LAUNCH UNPACKING
+
 
 /**
  * @brief Get field target_system from return_to_launch message

@@ -262,6 +262,8 @@ Item {
     // Fire Mission 설정값
     property int _targetSystemId: 1
     property real _targetAltitude: 2.0  // 목표 고도 (미터)
+    property real _takeoffSpeed: 5.0    // 이륙 속도 (m/s)
+    property real _flightSpeed: 10.0    // 비행 속도 (m/s)
     
     // 버튼 크기 (화면 비율 기준)
     property real _buttonHeight: parent.height * 0.08  // 화면 높이의 8%
@@ -375,6 +377,106 @@ Item {
                 }
             }
             
+            // 이륙 속도 입력
+            Rectangle {
+                id: takeoffSpeedPanel
+                width: takeoffSpeedRow.width + ScreenTools.defaultFontPixelWidth * 3
+                height: _buttonHeight
+                color: "#FF5722"  // 주황색
+                radius: ScreenTools.defaultFontPixelWidth
+                border.color: "#E64A19"
+                border.width: 2
+                
+                Row {
+                    id: takeoffSpeedRow
+                    anchors.centerIn: parent
+                    spacing: ScreenTools.defaultFontPixelWidth
+                    
+                    Text {
+                        text: qsTr("이륙:")
+                        color: "white"
+                        font.pixelSize: _buttonFontSize
+                        font.bold: true
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    QGCTextField {
+                        id: takeoffSpeedField
+                        width: ScreenTools.defaultFontPixelWidth * 6
+                        height: _buttonHeight * 0.7
+                        text: _takeoffSpeed.toFixed(1)
+                        font.pixelSize: _buttonFontSize
+                        font.bold: true
+                        inputMethodHints: Qt.ImhFormattedNumbersOnly
+                        validator: DoubleValidator { bottom: 0; top: 100; decimals: 1 }
+                        onEditingFinished: {
+                            var val = parseFloat(text)
+                            if (!isNaN(val) && val >= 0 && val <= 100) {
+                                _takeoffSpeed = val
+                            } else {
+                                text = _takeoffSpeed.toFixed(1)
+                            }
+                        }
+                    }
+                    Text {
+                        text: qsTr("m/s")
+                        color: "white"
+                        font.pixelSize: _buttonFontSize
+                        font.bold: true
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+            }
+            
+            // 비행 속도 입력
+            Rectangle {
+                id: flightSpeedPanel
+                width: flightSpeedRow.width + ScreenTools.defaultFontPixelWidth * 3
+                height: _buttonHeight
+                color: "#00BCD4"  // 청록색
+                radius: ScreenTools.defaultFontPixelWidth
+                border.color: "#0097A7"
+                border.width: 2
+                
+                Row {
+                    id: flightSpeedRow
+                    anchors.centerIn: parent
+                    spacing: ScreenTools.defaultFontPixelWidth
+                    
+                    Text {
+                        text: qsTr("비행:")
+                        color: "white"
+                        font.pixelSize: _buttonFontSize
+                        font.bold: true
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                    QGCTextField {
+                        id: flightSpeedField
+                        width: ScreenTools.defaultFontPixelWidth * 6
+                        height: _buttonHeight * 0.7
+                        text: _flightSpeed.toFixed(1)
+                        font.pixelSize: _buttonFontSize
+                        font.bold: true
+                        inputMethodHints: Qt.ImhFormattedNumbersOnly
+                        validator: DoubleValidator { bottom: 0; top: 100; decimals: 1 }
+                        onEditingFinished: {
+                            var val = parseFloat(text)
+                            if (!isNaN(val) && val >= 0 && val <= 100) {
+                                _flightSpeed = val
+                            } else {
+                                text = _flightSpeed.toFixed(1)
+                            }
+                        }
+                    }
+                    Text {
+                        text: qsTr("m/s")
+                        color: "white"
+                        font.pixelSize: _buttonFontSize
+                        font.bold: true
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+            }
+            
             // 미션 시작 버튼
             Rectangle {
                 id: missionStartButton
@@ -415,8 +517,8 @@ Item {
                         var maxProjectiles = 10;
                         
                         try {
-                            _activeVehicle.sendFireMissionStart(_targetSystemId, 191, targetLat, targetLon, _targetAltitude, autoFire, maxProjectiles);
-                            QGroundControl.showAppMessage(qsTr("Mission Start: Lat %1, Lon %2, Alt %3m").arg(savedTargetPos.latitude.toFixed(6)).arg(savedTargetPos.longitude.toFixed(6)).arg(_targetAltitude.toFixed(1)));
+                            _activeVehicle.sendFireMissionStart(_targetSystemId, 191, targetLat, targetLon, _targetAltitude, autoFire, maxProjectiles, _takeoffSpeed, _flightSpeed);
+                            QGroundControl.showAppMessage(qsTr("Mission Start: Lat %1, Lon %2, Alt %3m, 이륙:%4m/s, 비행:%5m/s").arg(savedTargetPos.latitude.toFixed(6)).arg(savedTargetPos.longitude.toFixed(6)).arg(_targetAltitude.toFixed(1)).arg(_takeoffSpeed.toFixed(1)).arg(_flightSpeed.toFixed(1)));
                         } catch(e) {
                             console.error("Error:", e);
                             QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));

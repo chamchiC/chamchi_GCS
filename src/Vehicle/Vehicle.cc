@@ -1784,7 +1784,7 @@ void Vehicle::sendMessageMultiple(mavlink_message_t message)
     _sendMessageMultipleList.append(info);
 }
 
-void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double targetLat, double targetLon, double targetAlt, int autoFire, int maxProjectiles)
+void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double targetLat, double targetLon, double targetAlt, int autoFire, int maxProjectiles, double takeoffSpeed, double flightSpeed)
 {
     SharedLinkInterfacePtr sharedLink = vehicleLinkManager()->primaryLink().lock();
     if (!sharedLink) {
@@ -1800,6 +1800,8 @@ void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double
     float alt = static_cast<float>(targetAlt);
     uint8_t autoFire_uint8 = static_cast<uint8_t>(qBound(0, autoFire, 255));
     uint8_t maxProjectiles_uint8 = static_cast<uint8_t>(qBound(0, maxProjectiles, 255));
+    float takeoff_speed_f = static_cast<float>(takeoffSpeed);
+    float flight_speed_f = static_cast<float>(flightSpeed);
     
     qWarning() << "sendFireMissionStart: Called from QML with parameters:";
     qWarning() << "  targetSystem (QML):" << targetSystem << "-> (converted):" << targetSystem_uint8;
@@ -1809,6 +1811,8 @@ void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double
     qWarning() << "  targetAlt (QML):" << targetAlt << "-> (converted):" << alt;
     qWarning() << "  autoFire (QML):" << autoFire << "-> (converted):" << autoFire_uint8;
     qWarning() << "  maxProjectiles (QML):" << maxProjectiles << "-> (converted):" << maxProjectiles_uint8;
+    qWarning() << "  takeoffSpeed (QML):" << takeoffSpeed << "-> (converted):" << takeoff_speed_f;
+    qWarning() << "  flightSpeed (QML):" << flightSpeed << "-> (converted):" << flight_speed_f;
     
     mavlink_message_t msg;
     mavlink_fire_mission_start_t fireMission;
@@ -1817,15 +1821,7 @@ void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double
     uint8_t componentId = MAVLinkProtocol::getComponentId();
     uint8_t channel = sharedLink->mavlinkChannel();
     
-    // 수신 코드(C++)의 FireMissionStart 구조체 바이트 레이아웃에 맞춤:
-    // offset 0-3:   target_lat (int32_t)
-    // offset 4-7:   target_lon (int32_t)
-    // offset 8-11:  target_alt (float)
-    // offset 12:    target_system (uint8_t)
-    // offset 13:    target_component (uint8_t)
-    // offset 14:    auto_fire (uint8_t)
-    // offset 15:    max_projectiles (uint8_t)
-    // MAVLink 구조체는 자동으로 이 순서로 정렬되므로 순서대로 채움
+    // MAVLink 구조체 필드 설정
     fireMission.target_lat = lat;
     fireMission.target_lon = lon;
     fireMission.target_alt = alt;
@@ -1833,6 +1829,8 @@ void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double
     fireMission.target_component = targetComponent_uint8;
     fireMission.auto_fire = autoFire_uint8;
     fireMission.max_projectiles = maxProjectiles_uint8;
+    fireMission.takeoff_speed = takeoff_speed_f;
+    fireMission.flight_speed = flight_speed_f;
     
     // 인코딩 전 파라미터 로그
     qWarning() << "sendFireMissionStart: Preparing message with parameters:";
@@ -1846,6 +1844,8 @@ void Vehicle::sendFireMissionStart(int targetSystem, int targetComponent, double
     qWarning() << "  Target Component:" << fireMission.target_component;
     qWarning() << "  Auto Fire:" << fireMission.auto_fire << (fireMission.auto_fire ? "(True)" : "(False)");
     qWarning() << "  Max Projectiles:" << fireMission.max_projectiles;
+    qWarning() << "  Takeoff Speed (m/s):" << fireMission.takeoff_speed;
+    qWarning() << "  Flight Speed (m/s):" << fireMission.flight_speed;
     
     // 수신 코드와 호환되는 바이트 레이아웃으로 인코딩
     // MAVLink encode_chan 함수는 구조체를 바이트 레이아웃에 맞춰 인코딩함
@@ -1905,8 +1905,8 @@ void Vehicle::sendFireMissionStartAtCurrentPosition(int autoFire, int maxProject
     qCInfo(VehicleLog) << "  Current position - Lat:" << currentPos.latitude() << "deg, Lon:" << currentPos.longitude() << "deg, Alt:" << targetAlt << "m";
     qCInfo(VehicleLog) << "  Converted - Lat:" << targetLat << "degE7, Lon:" << targetLon << "degE7";
     
-    // 현재 Vehicle의 ID와 Component ID를 사용
-    sendFireMissionStart(_id, _compID, targetLat, targetLon, targetAlt, autoFire, maxProjectiles);
+    // 현재 Vehicle의 ID와 Component ID를 사용 (기본 속도: 이륙 5m/s, 비행 10m/s)
+    sendFireMissionStart(_id, _compID, targetLat, targetLon, targetAlt, autoFire, maxProjectiles, 5.0, 10.0);
 }
 
 void Vehicle::sendAutoAim(int targetSystem, int targetComponent)

@@ -11,6 +11,8 @@
             <field type="float" name="target_alt" units="m">Target Altitude (meters)</field>
             <field type="uint8_t" name="auto_fire">Auto fire enabled (0: False, 1: True)</field>
             <field type="uint8_t" name="max_projectiles">Maximum number of projectiles</field>
+            <field type="float" name="takeoff_speed" units="m/s">Takeoff Speed (m/s)</field>
+            <field type="float" name="flight_speed" units="m/s">Flight Speed (m/s)</field>
         </message>
         <message id="60001" name="AUTO_AIM">
             <description>Auto aim command</description>

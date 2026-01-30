@@ -834,8 +834,10 @@ public slots:
      * @param targetAlt 목표 고도 (미터) - QML에서 Number로 전달
      * @param autoFire 자동 발사 활성화 (0: False, 1: True) - QML에서 int로 전달
      * @param maxProjectiles 최대 발사체 수 - QML에서 int로 전달
+     * @param takeoffSpeed 이륙 속도 (m/s) - QML에서 Number로 전달
+     * @param flightSpeed 비행 속도 (m/s) - QML에서 Number로 전달
      */
-    Q_INVOKABLE void sendFireMissionStart(int targetSystem, int targetComponent, double targetLat, double targetLon, double targetAlt, int autoFire, int maxProjectiles);
+    Q_INVOKABLE void sendFireMissionStart(int targetSystem, int targetComponent, double targetLat, double targetLon, double targetAlt, int autoFire, int maxProjectiles, double takeoffSpeed, double flightSpeed);
     
     /**
      * @brief 현재 위치를 목표로 FIRE_MISSION_START 메시지를 드론에 송신
