@@ -12,7 +12,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt.labs.settings
+import QtCore
 
 import QGroundControl
 import QGroundControl.Controls
