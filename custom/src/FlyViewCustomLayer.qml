@@ -12,6 +12,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Qt.labs.settings
 
 import QGroundControl
 import QGroundControl.Controls
@@ -21,9 +22,18 @@ import QGroundControl.ScreenTools
 import Custom.Widgets
 
 Item {
+    id: rootItem
+    focus: true
     property var parentToolInsets                       // These insets tell you what screen real estate is available for positioning the controls in your overlay
     property var totalToolInsets:   _totalToolInsets    // The insets updated for the custom overlay additions
     property var mapControl
+    
+    // 배경 클릭 시 입력 필드 포커스 해제
+    MouseArea {
+        anchors.fill: parent
+        onClicked: rootItem.forceActiveFocus()
+        z: -1  // 다른 요소들 뒤에 배치
+    }
 
     readonly property string noGPS:         qsTr("NO GPS")
     readonly property real   indicatorValueWidth:   ScreenTools.defaultFontPixelWidth * 7
@@ -259,68 +269,133 @@ Item {
         }
     }
 
-    // Fire Mission 설정값
-    property int _targetSystemId: 1
-    property real _targetAltitude: 2.0  // 목표 고도 (미터)
-    property real _takeoffSpeed: 5.0    // 이륙 속도 (m/s)
-    property real _flightSpeed: 10.0    // 비행 속도 (m/s)
+    // Fire Mission 설정값 (자동 저장/불러오기)
+    Settings {
+        id: fireMissionSettings
+        category: "FireMission"
+        property int targetSystemId: 1
+        property real targetAltitude: 2.0
+        property real takeoffSpeed: 5.0
+        property real flightSpeed: 10.0
+    }
     
-    // 버튼 크기 (화면 비율 기준)
-    property real _buttonHeight: parent.height * 0.08  // 화면 높이의 8%
-    property real _buttonWidth: parent.width * 0.08    // 화면 너비의 8%
-    property real _buttonFontSize: ScreenTools.defaultFontPixelHeight * 1.5
+    // Settings 값 바인딩
+    property int _targetSystemId: fireMissionSettings.targetSystemId
+    property real _targetAltitude: fireMissionSettings.targetAltitude
+    property real _takeoffSpeed: fireMissionSettings.takeoffSpeed
+    property real _flightSpeed: fireMissionSettings.flightSpeed
+    
+    // 버튼 크기
+    property real _panelHeight: ScreenTools.defaultFontPixelHeight * 2.8
+    property real _fontSize: ScreenTools.largeFontPointSize
+    property real _fieldWidth: ScreenTools.defaultFontPixelWidth * 9
+    property real _panelRadius: ScreenTools.defaultFontPixelWidth * 0.5
+    property real _buttonPadding: ScreenTools.defaultFontPixelWidth * 3
     
     // 버튼 패널 (하단 중앙에 배치)
     Row {
         id: buttonPanel
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: ScreenTools.defaultFontPixelHeight
-        spacing: ScreenTools.defaultFontPixelWidth * 2
+        anchors.bottomMargin: ScreenTools.defaultFontPixelHeight * 0.5
+        spacing: ScreenTools.defaultFontPixelWidth
         
-        // ========== 왼쪽 그룹: 마브시스 아이디 + 미션 시작 ==========
+        // ========== 입력 패널들 ==========
         Row {
-            id: leftButtonGroup
+            id: inputPanels
             spacing: ScreenTools.defaultFontPixelWidth
             anchors.verticalCenter: parent.verticalCenter
             
-            // 마브시스 아이디 입력
+            // MAV ID 입력
             Rectangle {
                 id: sysIdPanel
                 width: sysIdRow.width + ScreenTools.defaultFontPixelWidth * 3
-                height: _buttonHeight
-                color: "#2196F3"  // 파란색
-                radius: ScreenTools.defaultFontPixelWidth
-                border.color: "#1565C0"
-                border.width: 2
+                height: _panelHeight
+                color: qgcPal.windowShade
+                radius: _panelRadius
+                border.color: qgcPal.text
+                border.width: 1
                 
                 Row {
                     id: sysIdRow
                     anchors.centerIn: parent
                     spacing: ScreenTools.defaultFontPixelWidth
                     
-                    Text {
-                        text: qsTr("MAV ID:")
-                        color: "white"
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                    QGCLabel {
+                        text: "ID"
+                        font.pointSize: _fontSize
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     QGCTextField {
                         id: targetSystemIdField
-                        width: ScreenTools.defaultFontPixelWidth * 6
-                        height: _buttonHeight * 0.7
+                        width: _fieldWidth
+                        height: _panelHeight * 0.7
                         text: _targetSystemId.toString()
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                        font.pointSize: _fontSize
                         inputMethodHints: Qt.ImhDigitsOnly
                         validator: IntValidator { bottom: 1; top: 255 }
+                        onActiveFocusChanged: if (activeFocus) selectAll()
                         onEditingFinished: {
                             var val = parseInt(text)
                             if (!isNaN(val) && val >= 1 && val <= 255) {
-                                _targetSystemId = val
+                                fireMissionSettings.targetSystemId = val
                             } else {
                                 text = _targetSystemId.toString()
+                            }
+                        }
+                    }
+                    // 위/아래 화살표 버튼
+                    Column {
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 1
+                        
+                        // 위 화살표 (증가)
+                        Rectangle {
+                            width: ScreenTools.defaultFontPixelWidth * 2.5
+                            height: _panelHeight * 0.32
+                            color: upMouseArea.pressed ? Qt.darker(qgcPal.button, 1.3) : qgcPal.button
+                            radius: 2
+                            
+                            Text {
+                                anchors.centerIn: parent
+                                text: "▲"
+                                font.pixelSize: parent.height * 0.7
+                                color: qgcPal.text
+                            }
+                            
+                            MouseArea {
+                                id: upMouseArea
+                                anchors.fill: parent
+                                onClicked: {
+                                    if (_targetSystemId < 255) {
+                                        fireMissionSettings.targetSystemId = _targetSystemId + 1
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 아래 화살표 (감소)
+                        Rectangle {
+                            width: ScreenTools.defaultFontPixelWidth * 2.5
+                            height: _panelHeight * 0.32
+                            color: downMouseArea.pressed ? Qt.darker(qgcPal.button, 1.3) : qgcPal.button
+                            radius: 2
+                            
+                            Text {
+                                anchors.centerIn: parent
+                                text: "▼"
+                                font.pixelSize: parent.height * 0.7
+                                color: qgcPal.text
+                            }
+                            
+                            MouseArea {
+                                id: downMouseArea
+                                anchors.fill: parent
+                                onClicked: {
+                                    if (_targetSystemId > 1) {
+                                        fireMissionSettings.targetSystemId = _targetSystemId - 1
+                                    }
+                                }
                             }
                         }
                     }
@@ -331,47 +406,43 @@ Item {
             Rectangle {
                 id: altitudePanel
                 width: altitudeRow.width + ScreenTools.defaultFontPixelWidth * 3
-                height: _buttonHeight
-                color: "#9C27B0"  // 보라색
-                radius: ScreenTools.defaultFontPixelWidth
-                border.color: "#7B1FA2"
-                border.width: 2
+                height: _panelHeight
+                color: qgcPal.windowShade
+                radius: _panelRadius
+                border.color: qgcPal.text
+                border.width: 1
                 
                 Row {
                     id: altitudeRow
                     anchors.centerIn: parent
                     spacing: ScreenTools.defaultFontPixelWidth
                     
-                    Text {
-                        text: qsTr("ALT:")
-                        color: "white"
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                    QGCLabel {
+                        text: "ALT"
+                        font.pointSize: _fontSize
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     QGCTextField {
                         id: targetAltitudeField
-                        width: ScreenTools.defaultFontPixelWidth * 8
-                        height: _buttonHeight * 0.7
+                        width: _fieldWidth
+                        height: _panelHeight * 0.7
                         text: _targetAltitude.toFixed(1)
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                        font.pointSize: _fontSize
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                         validator: DoubleValidator { bottom: 0; top: 10000; decimals: 1 }
+                        onActiveFocusChanged: if (activeFocus) selectAll()
                         onEditingFinished: {
                             var val = parseFloat(text)
                             if (!isNaN(val) && val >= 0 && val <= 10000) {
-                                _targetAltitude = val
+                                fireMissionSettings.targetAltitude = val
                             } else {
                                 text = _targetAltitude.toFixed(1)
                             }
                         }
                     }
-                    Text {
-                        text: qsTr("m")
-                        color: "white"
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                    QGCLabel {
+                        text: "m"
+                        font.pointSize: _fontSize
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
@@ -381,47 +452,43 @@ Item {
             Rectangle {
                 id: takeoffSpeedPanel
                 width: takeoffSpeedRow.width + ScreenTools.defaultFontPixelWidth * 3
-                height: _buttonHeight
-                color: "#FF5722"  // 주황색
-                radius: ScreenTools.defaultFontPixelWidth
-                border.color: "#E64A19"
-                border.width: 2
+                height: _panelHeight
+                color: qgcPal.windowShade
+                radius: _panelRadius
+                border.color: qgcPal.text
+                border.width: 1
                 
                 Row {
                     id: takeoffSpeedRow
                     anchors.centerIn: parent
                     spacing: ScreenTools.defaultFontPixelWidth
                     
-                    Text {
-                        text: qsTr("이륙:")
-                        color: "white"
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                    QGCLabel {
+                        text: "이륙속도"
+                        font.pointSize: _fontSize
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     QGCTextField {
                         id: takeoffSpeedField
-                        width: ScreenTools.defaultFontPixelWidth * 6
-                        height: _buttonHeight * 0.7
+                        width: _fieldWidth
+                        height: _panelHeight * 0.7
                         text: _takeoffSpeed.toFixed(1)
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                        font.pointSize: _fontSize
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                         validator: DoubleValidator { bottom: 0; top: 100; decimals: 1 }
+                        onActiveFocusChanged: if (activeFocus) selectAll()
                         onEditingFinished: {
                             var val = parseFloat(text)
                             if (!isNaN(val) && val >= 0 && val <= 100) {
-                                _takeoffSpeed = val
+                                fireMissionSettings.takeoffSpeed = val
                             } else {
                                 text = _takeoffSpeed.toFixed(1)
                             }
                         }
                     }
-                    Text {
-                        text: qsTr("m/s")
-                        color: "white"
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                    QGCLabel {
+                        text: "m/s"
+                        font.pointSize: _fontSize
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
@@ -431,68 +498,70 @@ Item {
             Rectangle {
                 id: flightSpeedPanel
                 width: flightSpeedRow.width + ScreenTools.defaultFontPixelWidth * 3
-                height: _buttonHeight
-                color: "#00BCD4"  // 청록색
-                radius: ScreenTools.defaultFontPixelWidth
-                border.color: "#0097A7"
-                border.width: 2
+                height: _panelHeight
+                color: qgcPal.windowShade
+                radius: _panelRadius
+                border.color: qgcPal.text
+                border.width: 1
                 
                 Row {
                     id: flightSpeedRow
                     anchors.centerIn: parent
                     spacing: ScreenTools.defaultFontPixelWidth
                     
-                    Text {
-                        text: qsTr("비행:")
-                        color: "white"
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                    QGCLabel {
+                        text: "비행속도"
+                        font.pointSize: _fontSize
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     QGCTextField {
                         id: flightSpeedField
-                        width: ScreenTools.defaultFontPixelWidth * 6
-                        height: _buttonHeight * 0.7
+                        width: _fieldWidth
+                        height: _panelHeight * 0.7
                         text: _flightSpeed.toFixed(1)
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                        font.pointSize: _fontSize
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                         validator: DoubleValidator { bottom: 0; top: 100; decimals: 1 }
+                        onActiveFocusChanged: if (activeFocus) selectAll()
                         onEditingFinished: {
                             var val = parseFloat(text)
                             if (!isNaN(val) && val >= 0 && val <= 100) {
-                                _flightSpeed = val
+                                fireMissionSettings.flightSpeed = val
                             } else {
                                 text = _flightSpeed.toFixed(1)
                             }
                         }
                     }
-                    Text {
-                        text: qsTr("m/s")
-                        color: "white"
-                        font.pixelSize: _buttonFontSize
-                        font.bold: true
+                    QGCLabel {
+                        text: "m/s"
+                        font.pointSize: _fontSize
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
             }
+        }
+        
+        // ========== 버튼들 ==========
+        Row {
+            id: actionButtons
+            spacing: ScreenTools.defaultFontPixelWidth
+            anchors.verticalCenter: parent.verticalCenter
             
             // 미션 시작 버튼
             Rectangle {
                 id: missionStartButton
-                width: _buttonWidth * 1.2
-                height: _buttonHeight
-                color: missionStartMouseArea.pressed ? "#388E3C" : "#4CAF50"  // 초록색
-                radius: ScreenTools.defaultFontPixelWidth
-                border.color: "#2E7D32"
-                border.width: 2
+                width: missionStartLabel.width + _buttonPadding * 2
+                height: _panelHeight
+                color: missionStartMouseArea.pressed ? Qt.darker(qgcPal.colorGreen, 1.5) : Qt.darker(qgcPal.colorGreen, 1.2)
+                radius: _panelRadius
                 
-                Text {
+                QGCLabel {
+                    id: missionStartLabel
                     anchors.centerIn: parent
-                    text: qsTr("미션 시작")
-                    color: "white"
-                    font.pixelSize: _buttonFontSize
+                    text: "시작"
+                    font.pointSize: _fontSize
                     font.bold: true
+                    color: "white"
                 }
                 
                 MouseArea {
@@ -510,7 +579,6 @@ Item {
                             return;
                         }
                         
-                        // 위도, 경도를 degE7로 변환
                         var targetLat = savedTargetPos.latitude * 1e7;
                         var targetLon = savedTargetPos.longitude * 1e7;
                         var autoFire = 1;
@@ -518,7 +586,7 @@ Item {
                         
                         try {
                             _activeVehicle.sendFireMissionStart(_targetSystemId, 191, targetLat, targetLon, _targetAltitude, autoFire, maxProjectiles, _takeoffSpeed, _flightSpeed);
-                            QGroundControl.showAppMessage(qsTr("Mission Start: Lat %1, Lon %2, Alt %3m, 이륙:%4m/s, 비행:%5m/s").arg(savedTargetPos.latitude.toFixed(6)).arg(savedTargetPos.longitude.toFixed(6)).arg(_targetAltitude.toFixed(1)).arg(_takeoffSpeed.toFixed(1)).arg(_flightSpeed.toFixed(1)));
+                            QGroundControl.showAppMessage(qsTr("Mission Start"));
                         } catch(e) {
                             console.error("Error:", e);
                             QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
@@ -526,30 +594,22 @@ Item {
                     }
                 }
             }
-        }
-        
-        // ========== 오른쪽 그룹: 자동 조준, 발사, 복귀 ==========
-        Row {
-            id: rightButtonGroup
-            spacing: ScreenTools.defaultFontPixelWidth
-            anchors.verticalCenter: parent.verticalCenter
             
             // 자동 조준 버튼
             Rectangle {
                 id: autoAimButton
-                width: _buttonWidth * 1.2
-                height: _buttonHeight
-                color: autoAimMouseArea.pressed ? "#F57C00" : "#FF9800"  // 주황색
-                radius: ScreenTools.defaultFontPixelWidth
-                border.color: "#E65100"
-                border.width: 2
+                width: autoAimLabel.width + _buttonPadding * 2
+                height: _panelHeight
+                color: autoAimMouseArea.pressed ? Qt.darker(qgcPal.colorOrange, 1.5) : Qt.darker(qgcPal.colorOrange, 1.2)
+                radius: _panelRadius
                 
-                Text {
+                QGCLabel {
+                    id: autoAimLabel
                     anchors.centerIn: parent
-                    text: qsTr("자동 조준")
-                    color: "white"
-                    font.pixelSize: _buttonFontSize
+                    text: "조준"
+                    font.pointSize: _fontSize
                     font.bold: true
+                    color: "white"
                 }
                 
                 MouseArea {
@@ -562,7 +622,7 @@ Item {
                         }
                         try {
                             _activeVehicle.sendAutoAim(_targetSystemId, 191);
-                            QGroundControl.showAppMessage(qsTr("Auto Aim (60001) sent to ID: %1").arg(_targetSystemId));
+                            QGroundControl.showAppMessage(qsTr("Auto Aim sent"));
                         } catch(e) {
                             console.error("Error:", e);
                             QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
@@ -574,19 +634,18 @@ Item {
             // 발사 버튼
             Rectangle {
                 id: fireButton
-                width: _buttonWidth
-                height: _buttonHeight
-                color: fireMouseArea.pressed ? "#C62828" : "#F44336"  // 빨간색
-                radius: ScreenTools.defaultFontPixelWidth
-                border.color: "#B71C1C"
-                border.width: 2
+                width: fireLabel.width + _buttonPadding * 2
+                height: _panelHeight
+                color: fireMouseArea.pressed ? Qt.darker(qgcPal.colorRed, 1.5) : Qt.darker(qgcPal.colorRed, 1.2)
+                radius: _panelRadius
                 
-                Text {
+                QGCLabel {
+                    id: fireLabel
                     anchors.centerIn: parent
-                    text: qsTr("발사")
-                    color: "white"
-                    font.pixelSize: _buttonFontSize
+                    text: "발사"
+                    font.pointSize: _fontSize
                     font.bold: true
+                    color: "white"
                 }
                 
                 MouseArea {
@@ -599,7 +658,7 @@ Item {
                         }
                         try {
                             _activeVehicle.sendFireCommand(_targetSystemId, 191);
-                            QGroundControl.showAppMessage(qsTr("Fire Command (60002) sent to ID: %1").arg(_targetSystemId));
+                            QGroundControl.showAppMessage(qsTr("Fire Command sent"));
                         } catch(e) {
                             console.error("Error:", e);
                             QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
@@ -611,19 +670,18 @@ Item {
             // 복귀 버튼
             Rectangle {
                 id: returnButton
-                width: _buttonWidth
-                height: _buttonHeight
-                color: returnMouseArea.pressed ? "#7B1FA2" : "#9C27B0"  // 보라색
-                radius: ScreenTools.defaultFontPixelWidth
-                border.color: "#6A1B9A"
-                border.width: 2
+                width: returnLabel.width + _buttonPadding * 2
+                height: _panelHeight
+                color: returnMouseArea.pressed ? Qt.darker(qgcPal.buttonHighlight, 1.5) : Qt.darker(qgcPal.buttonHighlight, 1.2)
+                radius: _panelRadius
                 
-                Text {
+                QGCLabel {
+                    id: returnLabel
                     anchors.centerIn: parent
-                    text: qsTr("복귀")
-                    color: "white"
-                    font.pixelSize: _buttonFontSize
+                    text: "복귀"
+                    font.pointSize: _fontSize
                     font.bold: true
+                    color: "white"
                 }
                 
                 MouseArea {
@@ -634,7 +692,6 @@ Item {
                             QGroundControl.showAppMessage(qsTr("No active vehicle"));
                             return;
                         }
-                        // Custom RETURN_TO_LAUNCH (60003)
                         _activeVehicle.sendReturnToLaunch(_targetSystemId, 191);
                         QGroundControl.showAppMessage(qsTr("RTL command sent"));
                     }
