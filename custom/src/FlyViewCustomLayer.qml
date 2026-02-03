@@ -23,17 +23,9 @@ import Custom.Widgets
 
 Item {
     id: rootItem
-    focus: true
     property var parentToolInsets                       // These insets tell you what screen real estate is available for positioning the controls in your overlay
     property var totalToolInsets:   _totalToolInsets    // The insets updated for the custom overlay additions
     property var mapControl
-    
-    // 배경 클릭 시 입력 필드 포커스 해제
-    MouseArea {
-        anchors.fill: parent
-        onClicked: rootItem.forceActiveFocus()
-        z: -1  // 다른 요소들 뒤에 배치
-    }
 
     readonly property string noGPS:         qsTr("NO GPS")
     readonly property real   indicatorValueWidth:   ScreenTools.defaultFontPixelWidth * 7
@@ -336,6 +328,7 @@ Item {
                         validator: IntValidator { bottom: 1; top: 255 }
                         onActiveFocusChanged: if (activeFocus) selectAll()
                         onEditingFinished: {
+                            focus = false
                             var val = parseInt(text)
                             if (!isNaN(val) && val >= 1 && val <= 255) {
                                 fireMissionSettings.targetSystemId = val
@@ -432,6 +425,7 @@ Item {
                         validator: DoubleValidator { bottom: 0; top: 10000; decimals: 1 }
                         onActiveFocusChanged: if (activeFocus) selectAll()
                         onEditingFinished: {
+                            focus = false
                             var val = parseFloat(text)
                             if (!isNaN(val) && val >= 0 && val <= 10000) {
                                 fireMissionSettings.targetAltitude = val
@@ -478,6 +472,7 @@ Item {
                         validator: DoubleValidator { bottom: 0; top: 100; decimals: 1 }
                         onActiveFocusChanged: if (activeFocus) selectAll()
                         onEditingFinished: {
+                            focus = false
                             var val = parseFloat(text)
                             if (!isNaN(val) && val >= 0 && val <= 100) {
                                 fireMissionSettings.takeoffSpeed = val
@@ -524,6 +519,7 @@ Item {
                         validator: DoubleValidator { bottom: 0; top: 100; decimals: 1 }
                         onActiveFocusChanged: if (activeFocus) selectAll()
                         onEditingFinished: {
+                            focus = false
                             var val = parseFloat(text)
                             if (!isNaN(val) && val >= 0 && val <= 100) {
                                 fireMissionSettings.flightSpeed = val
