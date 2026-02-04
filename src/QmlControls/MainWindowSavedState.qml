@@ -34,6 +34,7 @@ Item {
     function _setDefaultDesktopWindowSize() {
         window.width = Math.min(250 * Screen.pixelDensity, Screen.width);
         window.height = Math.min(150 * Screen.pixelDensity, Screen.height);
+        window.visibility = Window.Windowed;  // 처음 실행 시 창모드로 시작
     }
 
     Component.onCompleted: {
@@ -50,10 +51,8 @@ Item {
                 window.y = s.y;
                 window.width = s.width;
                 window.height = s.height;
-                window.visibility = s.visibility;
-            } else {
-                _setDefaultDesktopWindowSize()
             }
+            window.visibility = Window.Windowed;  // 항상 창모드로 시작
         } else {
             _setDefaultDesktopWindowSize()
         }

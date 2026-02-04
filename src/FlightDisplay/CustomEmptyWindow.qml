@@ -24,6 +24,7 @@ Window {
     height: 300
     minimumWidth: 300
     minimumHeight: 200
+    visibility: Window.Windowed  // 항상 창모드로 열기
     
     title: qsTr("Custom Window")
     
