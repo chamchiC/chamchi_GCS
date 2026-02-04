@@ -5,6 +5,8 @@
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
+ * Custom build - UI elements moved to bottom
+ *
  ****************************************************************************/
 
 import QtQuick
@@ -29,6 +31,7 @@ import QGroundControl.ScreenTools
 import QGroundControl.Vehicle
 
 // This is the ui overlay layer for the widgets/tools for Fly View
+// Custom: UI elements moved to bottom
 Item {
     id: _root
 
@@ -56,45 +59,47 @@ Item {
 
     QGCToolInsets {
         id:                     _totalToolInsets
-        leftEdgeTopInset:       toolStrip.leftEdgeTopInset
+        leftEdgeTopInset:       parentToolInsets.leftEdgeTopInset
         leftEdgeCenterInset:    toolStrip.leftEdgeCenterInset
-        leftEdgeBottomInset:    virtualJoystickMultiTouch.visible ? virtualJoystickMultiTouch.leftEdgeBottomInset : parentToolInsets.leftEdgeBottomInset
-        rightEdgeTopInset:      topRightPanel.rightEdgeTopInset
-        rightEdgeCenterInset:   topRightPanel.rightEdgeCenterInset
-        rightEdgeBottomInset:   bottomRightRowLayout.rightEdgeBottomInset
-        topEdgeLeftInset:       toolStrip.topEdgeLeftInset
-        topEdgeCenterInset:     mapScale.topEdgeCenterInset
-        topEdgeRightInset:      topRightPanel.topEdgeRightInset
-        bottomEdgeLeftInset:    virtualJoystickMultiTouch.visible ? virtualJoystickMultiTouch.bottomEdgeLeftInset : parentToolInsets.bottomEdgeLeftInset
+        leftEdgeBottomInset:    toolStrip.leftEdgeBottomInset
+        rightEdgeTopInset:      parentToolInsets.rightEdgeTopInset
+        rightEdgeCenterInset:   bottomRightPanel.rightEdgeCenterInset
+        rightEdgeBottomInset:   bottomRightPanel.rightEdgeBottomInset
+        topEdgeLeftInset:       parentToolInsets.topEdgeLeftInset
+        topEdgeCenterInset:     parentToolInsets.topEdgeCenterInset
+        topEdgeRightInset:      parentToolInsets.topEdgeRightInset
+        bottomEdgeLeftInset:    toolStrip.bottomEdgeLeftInset
         bottomEdgeCenterInset:  bottomRightRowLayout.bottomEdgeCenterInset
-        bottomEdgeRightInset:   virtualJoystickMultiTouch.visible ? virtualJoystickMultiTouch.bottomEdgeRightInset : bottomRightRowLayout.bottomEdgeRightInset
+        bottomEdgeRightInset:   bottomRightRowLayout.bottomEdgeRightInset
     }
 
+    // Custom: 오른쪽 패널을 하단으로 이동
     FlyViewTopRightPanel {
-        id:                     topRightPanel
-        anchors.top:            parent.top
+        id:                     bottomRightPanel
+        anchors.bottom:         parent.bottom
         anchors.right:          parent.right
-        anchors.topMargin:      _layoutMargin
+        anchors.bottomMargin:   _layoutMargin
         anchors.rightMargin:    _layoutMargin
-        maximumHeight:          parent.height - (bottomRightRowLayout.height + _margins * 5)
+        maximumHeight:          parent.height - _margins * 5
 
-        property real topEdgeRightInset:    height + _layoutMargin
-        property real rightEdgeTopInset:    width + _layoutMargin
-        property real rightEdgeCenterInset: rightEdgeTopInset
+        property real bottomEdgeRightInset:  height + _layoutMargin
+        property real rightEdgeBottomInset:  width + _layoutMargin
+        property real rightEdgeCenterInset:  rightEdgeBottomInset
     }
 
+    // Custom: 오른쪽 컬럼 레이아웃도 하단으로
     FlyViewTopRightColumnLayout {
-        id:                 topRightColumnLayout
+        id:                 bottomRightColumnLayout
         anchors.margins:    _layoutMargin
         anchors.top:        parent.top
         anchors.bottom:     bottomRightRowLayout.top
         anchors.right:      parent.right
         spacing:            _layoutSpacing
-        visible:           !topRightPanel.visible
+        visible:           !bottomRightPanel.visible
 
-        property real topEdgeRightInset:    childrenRect.height + _layoutMargin
-        property real rightEdgeTopInset:    width + _layoutMargin
-        property real rightEdgeCenterInset: rightEdgeTopInset
+        property real bottomEdgeRightInset:  childrenRect.height + _layoutMargin
+        property real rightEdgeBottomInset:  width + _layoutMargin
+        property real rightEdgeCenterInset:  rightEdgeBottomInset
     }
 
     FlyViewBottomRightRowLayout {
@@ -115,9 +120,11 @@ Item {
         rallyPointController:   _rallyPointController
     }
 
+    // Custom: GuidedActionConfirm을 하단으로 이동
     GuidedActionConfirm {
         anchors.margins:            _toolsMargin
-        anchors.top:                parent.top
+        anchors.bottom:             parent.bottom
+        anchors.bottomMargin:       ScreenTools.toolbarHeight + _toolsMargin
         anchors.horizontalCenter:   parent.horizontalCenter
         z:                          QGroundControl.zOrderTopMost
         guidedController:           _guidedController
@@ -133,10 +140,10 @@ Item {
         anchors.rightMargin:        anchors.leftMargin
         height:                     Math.min(parent.height * 0.25, ScreenTools.defaultFontPixelWidth * 16)
         visible:                    _virtualJoystickEnabled && !QGroundControl.videoManager.fullScreen && !(_activeVehicle ? _activeVehicle.usingHighLatencyLink : false)
-        anchors.bottom:             parent.bottom
-        anchors.bottomMargin:       bottomLoaderMargin
+        anchors.bottom:             toolStrip.top
+        anchors.bottomMargin:       _toolsMargin
         anchors.left:               parent.left   
-        anchors.leftMargin:         ( y > toolStrip.y + toolStrip.height ? toolStrip.width / 2 : toolStrip.width * 1.05 + toolStrip.x) 
+        anchors.leftMargin:         toolStrip.width * 1.05 + toolStrip.x
         source:                     "qrc:/qml/QGroundControl/FlightDisplay/VirtualJoystick.qml"
         active:                     _virtualJoystickEnabled && !(_activeVehicle ? _activeVehicle.usingHighLatencyLink : false)
 
@@ -145,10 +152,6 @@ Item {
         property bool leftHandedMode:          QGroundControl.settingsManager.appSettings.virtualJoystickLeftHandedMode.rawValue
         property bool _virtualJoystickEnabled: QGroundControl.settingsManager.appSettings.virtualJoystick.rawValue
         property real bottomEdgeRightInset:    parent.height-y
-        property var  _pipViewMargin:          _pipView.visible ? parentToolInsets.bottomEdgeLeftInset + ScreenTools.defaultFontPixelHeight * 2 : 
-                                               bottomRightRowLayout.height + ScreenTools.defaultFontPixelHeight * 1.5
-
-        property var  bottomLoaderMargin:      _pipViewMargin >= parent.height / 2 ? parent.height / 2 : _pipViewMargin
 
         // Width is difficult to access directly hence this hack which may not work in all circumstances
         property real leftEdgeBottomInset:  visible ? bottomEdgeLeftInset + width/18 - ScreenTools.defaultFontPixelHeight*2 : 0
@@ -171,14 +174,15 @@ Item {
         }
     }
 
+    // Custom: 툴스트립을 왼쪽 하단으로 이동
     FlyViewToolStrip {
         id:                     toolStrip
         anchors.leftMargin:     _toolsMargin + parentToolInsets.leftEdgeCenterInset
-        anchors.topMargin:      _toolsMargin + parentToolInsets.topEdgeLeftInset
+        anchors.bottomMargin:   _toolsMargin + ScreenTools.toolbarHeight  // 툴바 위로
         anchors.left:           parent.left
-        anchors.top:            parent.top
+        anchors.bottom:         parent.bottom
         z:                      QGroundControl.zOrderWidgets
-        maxHeight:              parent.height - y - parentToolInsets.bottomEdgeLeftInset - _toolsMargin
+        maxHeight:              parent.height - parentToolInsets.topEdgeLeftInset - _toolsMargin - ScreenTools.toolbarHeight
         visible:                !QGroundControl.videoManager.fullScreen
 
         onDisplayPreFlightChecklist: {
@@ -188,9 +192,9 @@ Item {
             preFlightChecklistLoader.item.open()
         }
 
-        property real topEdgeLeftInset:     visible ? y + height : 0
-        property real leftEdgeTopInset:     visible ? x + width : 0
-        property real leftEdgeCenterInset:  leftEdgeTopInset
+        property real bottomEdgeLeftInset:   visible ? parent.height - y : 0
+        property real leftEdgeBottomInset:   visible ? x + width : 0
+        property real leftEdgeCenterInset:   leftEdgeBottomInset
     }
 
     GripperMenu {
@@ -202,16 +206,17 @@ Item {
         z:                  QGroundControl.zOrderTopMost
     }
 
+    // Custom: MapScale을 왼쪽 하단으로 이동 (툴스트립 옆)
     MapScale {
         id:                 mapScale
         anchors.margins:    _toolsMargin
         anchors.left:       toolStrip.right
-        anchors.top:        parent.top
+        anchors.bottom:     toolStrip.bottom
         mapControl:         _mapControl
         buttonsOnLeft:      true
         visible:            !ScreenTools.isTinyScreen && QGroundControl.corePlugin.options.flyView.showMapScale && !isViewer3DOpen && mapControl.pipState.state === mapControl.pipState.fullState
 
-        property real topEdgeCenterInset: visible ? y + height : 0
+        property real bottomEdgeCenterInset: visible ? parent.height - y : 0
     }
 
     Loader {

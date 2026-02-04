@@ -96,7 +96,8 @@ public:
     virtual QGeoPositionInfoSource *createPositionSource(QObject *parent) { Q_UNUSED(parent); return nullptr; }
 
     /// Allows a plugin to override the specified color name from the palette
-    virtual void paletteOverride(const QString &colorName, QGCPalette::PaletteColorInfo_t &colorInfo) { Q_UNUSED(colorName); Q_UNUSED(colorInfo); };
+    /// Chamchi GCS: Implements custom Neumorphism Dark Cyan theme
+    virtual void paletteOverride(const QString &colorName, QGCPalette::PaletteColorInfo_t &colorInfo);
 
     virtual void factValueGridCreateDefaultSettings(FactValueGrid* factValueGrid);
 
@@ -202,7 +203,7 @@ signals:
 
 protected:
     bool _showTouchAreas = false;
-    bool _showAdvancedUI = true;
+    bool _showAdvancedUI = false;  // Chamchi GCS: Default to basic mode
 
 private:
     void _setShowTouchAreas(bool show);

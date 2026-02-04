@@ -215,4 +215,20 @@
         <file alias="ZoomPlus.svg">src/FlightMap/Images/ZoomPlus.svg</file>
         <file alias="Viewer3D/City3DMapIcon.svg">src/Viewer3D/Images/city_3d_map_icon.svg</file>
     </qresource>
+    <qresource prefix="/custom/img">
+        <file alias="altitude.svg">resources/custom/img/altitude.svg</file>
+        <file alias="attitude_crosshair.svg">resources/custom/img/attitude_crosshair.svg</file>
+        <file alias="attitude_dial.svg">resources/custom/img/attitude_dial.svg</file>
+        <file alias="attitude_pointer.svg">resources/custom/img/attitude_pointer.svg</file>
+        <file alias="chronometer.svg">resources/custom/img/chronometer.svg</file>
+        <file alias="compass_needle.svg">resources/custom/img/compass_needle.svg</file>
+        <file alias="compass_pointer.svg">resources/custom/img/compass_pointer.svg</file>
+        <file alias="CustomVehicleIcon.svg">resources/custom/img/CustomVehicleIcon.svg</file>
+        <file alias="distance.svg">resources/custom/img/distance.svg</file>
+        <file alias="easysystem.svg">resources/custom/img/easysystem.svg</file>
+        <file alias="horizontal_speed.svg">resources/custom/img/horizontal_speed.svg</file>
+        <file alias="microSD.svg">resources/custom/img/microSD.svg</file>
+        <file alias="odometer.svg">resources/custom/img/odometer.svg</file>
+        <file alias="vertical_speed.svg">resources/custom/img/vertical_speed.svg</file>
+    </qresource>
 </RCC>

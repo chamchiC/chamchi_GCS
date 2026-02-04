@@ -21,6 +21,7 @@
 #include "Vehicle.h"
 #include "Actuators.h"
 #include "ActuatorComponent.h"
+#include "QGCCorePlugin.h"  // Chamchi GCS: For advanced mode
 
 /// @file
 ///     @brief This is the AutoPilotPlugin implementatin for the MAV_AUTOPILOT_PX4 type.
@@ -51,6 +52,9 @@ PX4AutoPilotPlugin::PX4AutoPilotPlugin(Vehicle* vehicle, QObject* parent)
     Q_CHECK_PTR(_airframeFacts);
 
     PX4AirframeLoader::loadAirframeMetaData();
+
+    // Chamchi GCS: Refresh components when advanced mode changes
+    connect(QGCCorePlugin::instance(), &QGCCorePlugin::showAdvancedUIChanged, this, &PX4AutoPilotPlugin::_advancedChanged);
 }
 
 PX4AutoPilotPlugin::~PX4AutoPilotPlugin()
@@ -58,72 +62,88 @@ PX4AutoPilotPlugin::~PX4AutoPilotPlugin()
     delete _airframeFacts;
 }
 
+// Chamchi GCS: Refresh vehicle components when advanced mode changes
+void PX4AutoPilotPlugin::_advancedChanged(bool)
+{
+    _components.clear();
+    emit vehicleComponentsChanged();
+}
+
 const QVariantList& PX4AutoPilotPlugin::vehicleComponents(void)
 {
     if (_components.count() == 0 && !_incorrectParameterVersion) {
         if (_vehicle) {
+            // Chamchi GCS: Show components based on advanced mode
+            bool showAdvanced = QGCCorePlugin::instance()->showAdvancedUI();
+
             if (_vehicle->parameterManager()->parametersReady()) {
-                _airframeComponent = new AirframeComponent(_vehicle, this, this);
-                _airframeComponent->setupTriggerSignals();
-                _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_airframeComponent)));
+                // Chamchi GCS: Only show in advanced mode
+                if (showAdvanced) {
+                    _airframeComponent = new AirframeComponent(_vehicle, this, this);
+                    _airframeComponent->setupTriggerSignals();
+                    _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_airframeComponent)));
 
-                if (!_vehicle->hilMode()) {
-                    _sensorsComponent = new SensorsComponent(_vehicle, this, this);
-                    _sensorsComponent->setupTriggerSignals();
-                    _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_sensorsComponent)));
+                    if (!_vehicle->hilMode()) {
+                        _sensorsComponent = new SensorsComponent(_vehicle, this, this);
+                        _sensorsComponent->setupTriggerSignals();
+                        _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_sensorsComponent)));
+                    }
+
+                    _radioComponent = new PX4RadioComponent(_vehicle, this, this);
+                    _radioComponent->setupTriggerSignals();
+                    _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_radioComponent)));
+
+                    _flightModesComponent = new FlightModesComponent(_vehicle, this, this);
+                    _flightModesComponent->setupTriggerSignals();
+                    _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_flightModesComponent)));
+
+                    _powerComponent = new PowerComponent(_vehicle, this, this);
+                    _powerComponent->setupTriggerSignals();
+                    _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_powerComponent)));
+
+                    if (_vehicle->actuators()) {
+                        _vehicle->actuators()->init();
+                    }
+                    if (_vehicle->actuators() && _vehicle->actuators()->showUi()) {
+                        _actuatorComponent = new ActuatorComponent(_vehicle, this, this);
+                        _actuatorComponent->setupTriggerSignals();
+                        _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_actuatorComponent)));
+                    } else {
+                        _motorComponent = new MotorComponent(_vehicle, this, this);
+                        _motorComponent->setupTriggerSignals();
+                        _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_motorComponent)));
+                    }
                 }
 
-                _radioComponent = new PX4RadioComponent(_vehicle, this, this);
-                _radioComponent->setupTriggerSignals();
-                _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_radioComponent)));
-
-                _flightModesComponent = new FlightModesComponent(_vehicle, this, this);
-                _flightModesComponent->setupTriggerSignals();
-                _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_flightModesComponent)));
-
-                _powerComponent = new PowerComponent(_vehicle, this, this);
-                _powerComponent->setupTriggerSignals();
-                _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_powerComponent)));
-
-                if (_vehicle->actuators()) {
-                    _vehicle->actuators()->init(); // At this point params are loaded, so we can init the actuators
-                }
-                if (_vehicle->actuators() && _vehicle->actuators()->showUi()) {
-                    _actuatorComponent = new ActuatorComponent(_vehicle, this, this);
-                    _actuatorComponent->setupTriggerSignals();
-                    _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_actuatorComponent)));
-                } else {
-                    // show previous motor UI instead
-                    _motorComponent = new MotorComponent(_vehicle, this, this);
-                    _motorComponent->setupTriggerSignals();
-                    _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_motorComponent)));
-                }
-
+                // Chamchi GCS: Safety always visible
                 _safetyComponent = new SafetyComponent(_vehicle, this, this);
                 _safetyComponent->setupTriggerSignals();
                 _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_safetyComponent)));
 
-                _tuningComponent = new PX4TuningComponent(_vehicle, this, this);
-                _tuningComponent->setupTriggerSignals();
-                _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_tuningComponent)));
+                // Chamchi GCS: Only show in advanced mode
+                if (showAdvanced) {
+                    _tuningComponent = new PX4TuningComponent(_vehicle, this, this);
+                    _tuningComponent->setupTriggerSignals();
+                    _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_tuningComponent)));
 
-                if(_vehicle->parameterManager()->parameterExists(_vehicle->compId(), "SYS_VEHICLE_RESP")) {
-                    _flightBehavior = new PX4FlightBehavior(_vehicle, this, this);
-                    _flightBehavior->setupTriggerSignals();
-                    _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_flightBehavior)));
-                }
+                    if(_vehicle->parameterManager()->parameterExists(_vehicle->compId(), "SYS_VEHICLE_RESP")) {
+                        _flightBehavior = new PX4FlightBehavior(_vehicle, this, this);
+                        _flightBehavior->setupTriggerSignals();
+                        _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_flightBehavior)));
+                    }
 
-                //-- Is there an ESP8266 Connected?
-                if(_vehicle->parameterManager()->parameterExists(MAV_COMP_ID_UDP_BRIDGE, "SW_VER")) {
-                    _esp8266Component = new ESP8266Component(_vehicle, this, this);
-                    _esp8266Component->setupTriggerSignals();
-                    _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_esp8266Component)));
+                    if(_vehicle->parameterManager()->parameterExists(MAV_COMP_ID_UDP_BRIDGE, "SW_VER")) {
+                        _esp8266Component = new ESP8266Component(_vehicle, this, this);
+                        _esp8266Component->setupTriggerSignals();
+                        _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_esp8266Component)));
+                    }
                 }
             } else {
                 qWarning() << "Call to vehicleCompenents prior to parametersReady";
             }
 
-            if(_vehicle->parameterManager()->parameterExists(_vehicle->compId(), "SLNK_RADIO_CHAN")) {
+            // Chamchi GCS: Only show in advanced mode
+            if (showAdvanced && _vehicle->parameterManager()->parameterExists(_vehicle->compId(), "SLNK_RADIO_CHAN")) {
                 _syslinkComponent = new SyslinkComponent(_vehicle, this, this);
                 _syslinkComponent->setupTriggerSignals();
                 _components.append(QVariant::fromValue(static_cast<VehicleComponent*>(_syslinkComponent)));

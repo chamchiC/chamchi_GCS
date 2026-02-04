@@ -75,6 +75,7 @@ public:
     bool                supportsNegativeThrust          (Vehicle* vehicle) const override;
     QString             getHobbsMeter                   (Vehicle* vehicle) const override;
     bool                hasGripper                      (const Vehicle* vehicle) const override;
+    bool                hasGimbal                       (Vehicle* vehicle, bool& rollSupported, bool& pitchSupported, bool& yawSupported) const override;
     QVariant            mainStatusIndicatorContentItem  (const Vehicle* vehicle) const override;
     const QVariantList& toolIndicators                  (const Vehicle* vehicle) override;
 

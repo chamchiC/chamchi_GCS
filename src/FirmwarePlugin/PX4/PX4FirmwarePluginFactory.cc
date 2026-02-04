@@ -25,6 +25,14 @@ QList<QGCMAVLink::FirmwareClass_t> PX4FirmwarePluginFactory::supportedFirmwareCl
     return list;
 }
 
+// Chamchi GCS: Only support MultiRotor
+QList<QGCMAVLink::VehicleClass_t> PX4FirmwarePluginFactory::supportedVehicleClasses(void) const
+{
+    QList<QGCMAVLink::VehicleClass_t> list;
+    list.append(QGCMAVLink::VehicleClassMultiRotor);
+    return list;
+}
+
 FirmwarePlugin* PX4FirmwarePluginFactory::firmwarePluginForAutopilot(MAV_AUTOPILOT autopilotType, MAV_TYPE /*vehicleType*/)
 {
     if (autopilotType == MAV_AUTOPILOT_PX4) {

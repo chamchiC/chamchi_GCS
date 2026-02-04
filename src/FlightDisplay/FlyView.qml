@@ -5,6 +5,8 @@
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
+ * Custom build - Toolbar moved to bottom
+ *
  ****************************************************************************/
 
 import QtQuick
@@ -79,15 +81,11 @@ Item {
         bottomEdgeLeftInset:    _pipView.bottomEdgeLeftInset
     }
 
-    FlyViewToolBar {
-        id:         toolbar
-        visible:    !QGroundControl.videoManager.fullScreen
-    }
-
+    // Custom: 맵/비디오 영역을 위로, 툴바 아래로
     Item {
         id:                 mapHolder
-        anchors.top:        toolbar.bottom
-        anchors.bottom:     parent.bottom
+        anchors.top:        parent.top
+        anchors.bottom:     toolbar.top  // 툴바 위로 변경
         anchors.left:       parent.left
         anchors.right:      parent.right
 
@@ -178,5 +176,14 @@ Item {
             id:                     viewer3DWindow
             anchors.fill:           parent
         }
+    }
+
+    // Custom: 툴바를 아래로 이동
+    FlyViewToolBar {
+        id:             toolbar
+        anchors.bottom: parent.bottom  // 아래로 배치
+        anchors.left:   parent.left
+        anchors.right:  parent.right
+        visible:        !QGroundControl.videoManager.fullScreen
     }
 }

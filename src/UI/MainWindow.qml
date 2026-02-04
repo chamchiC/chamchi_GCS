@@ -5,6 +5,8 @@
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
+ * Custom build - Main window starts in fullscreen on primary monitor
+ *
  ****************************************************************************/
 
 import QtQuick
@@ -28,19 +30,64 @@ import QGroundControl.UTMSP
 ApplicationWindow {
     id:             mainWindow
     visible:        true
+    
+    // Custom: 창모드로 시작
+    visibility:     Window.Windowed
 
     property bool   _utmspSendActTrigger
     property bool   _utmspStartTelemetry
 
+    // 주 모니터 찾기 함수 (virtualX=0, virtualY=0인 스크린이 주 모니터)
+    function findPrimaryScreen() {
+        var screens = Qt.application.screens
+        for (var i = 0; i < screens.length; i++) {
+            if (screens[i].virtualX === 0 && screens[i].virtualY === 0) {
+                console.log("Found primary screen at index " + i + ": " + screens[i].name)
+                return screens[i]
+            }
+        }
+        // 못 찾으면 첫 번째 스크린 반환
+        console.log("Primary screen not found, using first screen")
+        return screens[0]
+    }
+
     Component.onCompleted: {
+        // Custom: 주 모니터(primary)에 전체화면으로 설정
+        if (Qt.application.screens.length > 0) {
+            var primaryScreen = findPrimaryScreen()
+            mainWindow.screen = primaryScreen
+            console.log("QGC starting on primary screen: " + mainWindow.screen.name + 
+                       " at (" + primaryScreen.virtualX + "," + primaryScreen.virtualY + ")")
+        }
+        
+        // 창모드 강제 적용 (약간의 딜레이 후)
+        windowModeTimer.start()
+        
         // Start the sequence of first run prompt(s)
         firstRunPromptManager.nextPrompt()
     }
-
-    /// Saves main window position and size and re-opens it in the same position and size next time
-    MainWindowSavedState {
-        window: mainWindow
+    
+    // 창모드 강제 적용 타이머
+    Timer {
+        id: windowModeTimer
+        interval: 100
+        repeat: false
+        onTriggered: {
+            mainWindow.visibility = Window.Windowed
+            // 창 크기 및 위치 설정
+            var currentScreen = mainWindow.screen
+            mainWindow.width = 1280
+            mainWindow.height = 720
+            mainWindow.x = currentScreen.virtualX + (currentScreen.width - 1280) / 2
+            mainWindow.y = currentScreen.virtualY + (currentScreen.height - 720) / 2
+            console.log("QGC window mode applied")
+        }
     }
+
+    // MainWindowSavedState를 비활성화 - 항상 전체화면으로 시작
+    // MainWindowSavedState {
+    //     window: mainWindow
+    // }
 
     QtObject {
         id: firstRunPromptManager
@@ -70,6 +117,29 @@ ApplicationWindow {
     }
 
     readonly property real      _topBottomMargins:          ScreenTools.defaultFontPixelHeight * 0.5
+
+    // Custom Empty Window 관리
+    property var _customWindowInstance: null
+    
+    Component {
+        id: customWindowComponent
+        CustomEmptyWindow { }
+    }
+    
+    function openCustomWindow() {
+        if (_customWindowInstance === null) {
+            _customWindowInstance = customWindowComponent.createObject(null)
+            if (_customWindowInstance) {
+                _customWindowInstance.closing.connect(function() {
+                    _customWindowInstance = null
+                })
+                _customWindowInstance.show()
+            }
+        } else {
+            _customWindowInstance.raise()
+            _customWindowInstance.requestActivate()
+        }
+    }
 
     //-------------------------------------------------------------------------
     //-- Global Scope Variables
@@ -395,6 +465,45 @@ ApplicationWindow {
                         }
 
                         SubMenuButton {
+                            id:                 openWindowButton
+                            height:             toolSelectDialog._toolButtonHeight
+                            Layout.fillWidth:   true
+                            text:               _customWindowInstance !== null ? qsTr("Close Window") : qsTr("Open Window")
+                            imageResource:      "/res/waves.svg"
+                            onClicked: {
+                                drawer.close()
+                                if (_customWindowInstance !== null) {
+                                    _customWindowInstance.close()
+                                } else {
+                                    mainWindow.openCustomWindow()
+                                }
+                            }
+                        }
+
+                        SubMenuButton {
+                            id:                 windowModeButton
+                            height:             toolSelectDialog._toolButtonHeight
+                            Layout.fillWidth:   true
+                            text:               mainWindow.visibility === Window.FullScreen ? qsTr("Window Mode") : qsTr("Fullscreen Mode")
+                            imageResource:      mainWindow.visibility === Window.FullScreen ? "/res/layout-right.svg" : "/res/layout-bottom.svg"
+                            onClicked: {
+                                mainWindow.closeIndicatorDrawer()
+                                if (mainWindow.visibility === Window.FullScreen) {
+                                    // 현재 스크린 정보 저장
+                                    var currentScreen = mainWindow.screen
+                                    mainWindow.visibility = Window.Windowed
+                                    mainWindow.width = 1280
+                                    mainWindow.height = 720
+                                    // 현재 모니터의 중앙에 배치 (virtualX/Y는 모니터의 절대 좌표)
+                                    mainWindow.x = currentScreen.virtualX + (currentScreen.width - 1280) / 2
+                                    mainWindow.y = currentScreen.virtualY + (currentScreen.height - 720) / 2
+                                } else {
+                                    mainWindow.visibility = Window.FullScreen
+                                }
+                            }
+                        }
+
+                        SubMenuButton {
                             id:                 closeButton
                             height:             toolSelectDialog._toolButtonHeight
                             Layout.fillWidth:   true
@@ -555,7 +664,8 @@ ApplicationWindow {
 
     Popup {
         id:                 criticalVehicleMessagePopup
-        y:                  ScreenTools.toolbarHeight + ScreenTools.defaultFontPixelHeight
+        // Custom: 툴바가 아래에 있으므로 팝업도 아래쪽에서 나옴
+        y:                  mainWindow.height - ScreenTools.toolbarHeight - height - ScreenTools.defaultFontPixelHeight
         x:                  Math.round((mainWindow.width - width) * 0.5)
         width:              mainWindow.width  * 0.55
         height:             criticalVehicleMessageText.contentHeight + ScreenTools.defaultFontPixelHeight * 2
@@ -658,7 +768,8 @@ ApplicationWindow {
     Popup {
         id:             indicatorDrawer
         x:              calcXPosition()
-        y:              ScreenTools.toolbarHeight + _margins
+        // Custom: 툴바가 아래에 있으므로 팝업도 아래쪽에서 나옴
+        y:              calcYPosition()
         leftInset:      0
         rightInset:     0
         topInset:       0
@@ -682,6 +793,12 @@ ApplicationWindow {
             } else {
                 return _margins
             }
+        }
+
+        function calcYPosition() {
+            // 툴바가 아래에 있으므로 팝업은 툴바 위에서 나옴
+            var popupHeight = contentItem ? contentItem.implicitHeight + (padding * 2) : 400
+            return mainWindow.height - ScreenTools.toolbarHeight - popupHeight - _margins
         }
 
         onOpened: {

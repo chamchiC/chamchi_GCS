@@ -42,9 +42,10 @@ signals:
     void guidedBarShowROIChanged(bool show);
 
 protected:
-    virtual bool showMultiVehicleList() const { return true; }
+    // Chamchi GCS: Hide multi vehicle list and instrument panel
+    virtual bool showMultiVehicleList() const { return false; }
     virtual bool showMapScale() const { return true; }
-    virtual bool showInstrumentPanel() const { return true; }
+    virtual bool showInstrumentPanel() const { return false; }
     virtual bool guidedBarShowEmergencyStop() const { return true; }
     virtual bool guidedBarShowOrbit() const { return true; }
     virtual bool guidedBarShowROI() const { return true; }
@@ -155,7 +156,8 @@ public:
     virtual bool showPX4LogTransferOptions() const { return true; }
     virtual bool showSimpleMissionStart() const { return false; }
 
-    virtual bool wifiReliableForCalibration() const { return false; }
+    // Chamchi GCS: WiFi is reliable for calibration
+    virtual bool wifiReliableForCalibration() const { return true; }
 
     /// Desktop builds save the main application size and position on close (and restore it on open)
     virtual bool enableSaveMainWindowPosition() const { return true; }

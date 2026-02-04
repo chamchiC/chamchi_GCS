@@ -44,6 +44,10 @@ public:
     void parametersReadyPreChecks(void) override;
     QString prerequisiteSetup(VehicleComponent* component) const override;
 
+private slots:
+    // Chamchi GCS: When advanced mode changes, refresh vehicle components
+    void _advancedChanged(bool advanced);
+
 protected:
     bool                    _incorrectParameterVersion; ///< true: parameter version incorrect, setup not allowed
     PX4AirframeLoader*      _airframeFacts;

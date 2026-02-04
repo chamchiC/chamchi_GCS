@@ -22,6 +22,7 @@ public:
     PX4FirmwarePluginFactory(void);
 
     QList<QGCMAVLink::FirmwareClass_t>  supportedFirmwareClasses(void) const final;
+    QList<QGCMAVLink::VehicleClass_t>   supportedVehicleClasses(void) const final;  // Chamchi GCS: MultiRotor only
     FirmwarePlugin*                     firmwarePluginForAutopilot  (MAV_AUTOPILOT autopilotType, MAV_TYPE vehicleType) final;
 
 private:

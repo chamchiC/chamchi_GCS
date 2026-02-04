@@ -20,12 +20,13 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.15)
 
 include(CustomOptions)
 
-if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/custom)
-    message(STATUS "Enabling custom build")
-    set(QGC_CUSTOM_BUILD ON)
-    list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/custom/cmake)
-    include(CustomOverrides)
-endif()
+# Chamchi GCS: Custom build merged into main codebase
+# if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/custom)
+#     message(STATUS "Enabling custom build")
+#     set(QGC_CUSTOM_BUILD ON)
+#     list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/custom/cmake)
+#     include(CustomOverrides)
+# endif()
 
 #######################################################
 #                   Project Info
@@ -252,14 +253,6 @@ endif()
 
 if(NOT QGC_BUILD_TESTING)
     set(BUILD_TESTING OFF CACHE INTERNAL "" FORCE)
-endif()
-
-#######################################################
-#                Custom Build Configuration
-#######################################################
-
-if(QGC_CUSTOM_BUILD)
-    add_subdirectory(custom)
 endif()
 
 #######################################################
@@ -522,12 +515,13 @@ if(QGC_BUILD_TESTING)
     add_subdirectory(test)
 endif()
 
-if(QGC_CUSTOM_BUILD)
-    find_package(Qt6 REQUIRED COMPONENTS ${CUSTOM_QT_COMPONENTS})
-    target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${CUSTOM_SOURCES})
-    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${CUSTOM_LIBRARIES})
-    target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CUSTOM_INCLUDE_DIRECTORIES})
-endif()
+# Chamchi GCS: Custom build merged into main codebase
+# if(QGC_CUSTOM_BUILD)
+#     find_package(Qt6 REQUIRED COMPONENTS ${CUSTOM_QT_COMPONENTS})
+#     target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${CUSTOM_SOURCES})
+#     target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${CUSTOM_LIBRARIES})
+#     target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CUSTOM_INCLUDE_DIRECTORIES})
+# endif()
 
 file(GLOB TS_SOURCES ${CMAKE_SOURCE_DIR}/translations/qgc_*.ts)
 set_source_files_properties(${TS_SOURCES} PROPERTIES OUTPUT_LOCATION "${CMAKE_BINARY_DIR}/i18n")

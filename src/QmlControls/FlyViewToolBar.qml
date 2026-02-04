@@ -5,6 +5,8 @@
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
+ * Custom build - Toolbar at bottom with divider on top
+ *
  ****************************************************************************/
 
 import QtQuick
@@ -35,11 +37,11 @@ Rectangle {
 
     QGCPalette { id: qgcPal }
 
-    /// Bottom single pixel divider
+    // Custom: 디바이더를 상단으로 이동 (툴바가 아래에 있으므로)
     Rectangle {
         anchors.left:   parent.left
         anchors.right:  parent.right
-        anchors.bottom: parent.bottom
+        anchors.top:    parent.top
         height:         1
         color:          "black"
         visible:        qgcPal.globalTheme === QGCPalette.Light
@@ -58,7 +60,7 @@ Rectangle {
 
     RowLayout {
         id:                     viewButtonRow
-        anchors.bottomMargin:   1
+        anchors.topMargin:      1  // Custom: 상단 디바이더를 위한 여백
         anchors.top:            parent.top
         anchors.bottom:         parent.bottom
         spacing:                ScreenTools.defaultFontPixelWidth / 2
@@ -89,7 +91,7 @@ Rectangle {
         anchors.leftMargin:     ScreenTools.defaultFontPixelWidth * ScreenTools.largeFontPointRatio * 1.5
         anchors.rightMargin:    ScreenTools.defaultFontPixelWidth / 2
         anchors.left:           viewButtonRow.right
-        anchors.bottomMargin:   1
+        anchors.topMargin:      1  // Custom: 상단 디바이더를 위한 여백
         anchors.top:            parent.top
         anchors.bottom:         parent.bottom
         anchors.right:          parent.right
@@ -153,9 +155,9 @@ Rectangle {
         }
     }
 
-    // Small parameter download progress bar
+    // Custom: Small parameter download progress bar를 상단으로 이동
     Rectangle {
-        anchors.bottom: parent.bottom
+        anchors.top:    parent.top
         height:         _root.height * 0.05
         width:          _activeVehicle ? _activeVehicle.loadProgress * parent.width : 0
         color:          qgcPal.colorGreen
@@ -165,7 +167,7 @@ Rectangle {
     // Large parameter download progress bar
     Rectangle {
         id:             largeProgressBar
-        anchors.bottom: parent.bottom
+        anchors.top:    parent.top
         anchors.left:   parent.left
         anchors.right:  parent.right
         height:         parent.height
@@ -197,7 +199,7 @@ Rectangle {
         QGCLabel {
             anchors.margins:    _margin
             anchors.right:      parent.right
-            anchors.bottom:     parent.bottom
+            anchors.top:        parent.top
             text:               qsTr("Click anywhere to hide")
 
             property real _margin: ScreenTools.defaultFontPixelWidth / 2

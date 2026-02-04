@@ -8,13 +8,13 @@ include(CMakeDependentOption)
 # controllers workaround is not supported and will likely cause issues.
 option(QGC_ENABLE_HERELINK "Enable Herelink Support" OFF)
 
-# App
-set(QGC_APP_NAME "QGroundControl" CACHE STRING "App Name")
-set(QGC_APP_COPYRIGHT "Copyright (c) 2025 QGroundControl. All rights reserved." CACHE STRING "Copyright")
-set(QGC_APP_DESCRIPTION "Open Source Ground Control App" CACHE STRING "Description")
-set(QGC_ORG_NAME "QGroundControl" CACHE STRING "Org Name")
+# App - Chamchi GCS
+set(QGC_APP_NAME "Chamchi_GCS" CACHE STRING "App Name")
+set(QGC_APP_COPYRIGHT "Copyright (c) 2025 chamchiC. All rights reserved." CACHE STRING "Copyright")
+set(QGC_APP_DESCRIPTION "Chamchi Ground Control Station" CACHE STRING "Description")
+set(QGC_ORG_NAME "chamchiC" CACHE STRING "Org Name")
 set(QGC_ORG_DOMAIN "qgroundcontrol.com" CACHE STRING "Domain")
-set(QGC_PACKAGE_NAME "org.mavlink.qgroundcontrol" CACHE STRING "Package Name")
+set(QGC_PACKAGE_NAME "org.chamchic.chamchi_gcs" CACHE STRING "Package Name")
 set(QGC_SETTINGS_VERSION "9" CACHE STRING "Settings Version") # If you need to make an incompatible changes to stored settings, bump this version number up by 1. This will caused store settings to be cleared on next boot.
 
 # Build
@@ -44,10 +44,10 @@ option(QGC_ENABLE_QT_VIDEOSTREAMING "Enable QtMultimedia Video Backend" OFF) # Q
 set(QGC_MAVLINK_GIT_REPO "https://github.com/mavlink/c_library_v2.git" CACHE STRING "URL to MAVLink Git Repo")
 set(QGC_MAVLINK_GIT_TAG "19f9955598af9a9181064619bd2e3c04bd2d848a" CACHE STRING "Tag of MAVLink Git Repo")
 
-# APM
-option(QGC_DISABLE_APM_MAVLINK "Disable APM Dialect" OFF)
-option(QGC_DISABLE_APM_PLUGIN "Disable APM Plugin" OFF)
-option(QGC_DISABLE_APM_PLUGIN_FACTORY "Disable APM Plugin Factory" OFF)
+# APM - Chamchi GCS: Disabled
+option(QGC_DISABLE_APM_MAVLINK "Disable APM Dialect" ON)
+option(QGC_DISABLE_APM_PLUGIN "Disable APM Plugin" ON)
+option(QGC_DISABLE_APM_PLUGIN_FACTORY "Disable APM Plugin Factory" ON)
 
 # PX4
 option(QGC_DISABLE_PX4_PLUGIN "Disable PX4 Plugin" OFF)
@@ -72,10 +72,10 @@ set(QGC_MACOS_ENTITLEMENTS_PATH "${CMAKE_SOURCE_DIR}/deploy/macos/qgroundcontrol
 # Linux
 set(QGC_APPIMAGE_ICON_PATH "${CMAKE_SOURCE_DIR}/resources/icons/qgroundcontrol.png" CACHE FILEPATH "AppImage Icon Path")
 
-# Windows
+# Windows - Chamchi GCS
 set(QGC_WINDOWS_INSTALL_HEADER_PATH "${CMAKE_SOURCE_DIR}/deploy/windows/installheader.bmp" CACHE FILEPATH "Windows Install Header Path")
-set(QGC_WINDOWS_ICON_PATH "${CMAKE_SOURCE_DIR}/deploy/windows/WindowsQGC.ico" CACHE FILEPATH "Windows Icon Path")
-set(QGC_WINDOWS_RESOURCE_FILE_PATH "${CMAKE_SOURCE_DIR}/deploy/windows/QGroundControl.rc" CACHE FILEPATH "Windows Resource File Path")
+set(QGC_WINDOWS_ICON_PATH "${CMAKE_SOURCE_DIR}/deploy/windows/Chamchi_GCS.ico" CACHE FILEPATH "Windows Icon Path")
+set(QGC_WINDOWS_RESOURCE_FILE_PATH "${CMAKE_SOURCE_DIR}/deploy/windows/Chamchi_GCS.rc" CACHE FILEPATH "Windows Resource File Path")
 
 # CPM
 set(QGC_CPM_SOURCE_CACHE "" CACHE PATH "Directory to Download CPM Dependencies, Overrides CPM_SOURCE_CACHE Env Variable")

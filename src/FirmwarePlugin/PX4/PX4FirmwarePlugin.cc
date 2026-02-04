@@ -78,22 +78,23 @@ PX4FirmwarePlugin::PX4FirmwarePlugin()
         { PX4CustomMode::AUTO_TAKEOFF,  takeoffFlightModeName     },
     });
 
+    // Chamchi GCS: Only allow Hold, Mission, RTL to be set by user
     static FlightModeList availableFlightModes = {
         // Mode Name                Custom Mode                     CanBeSet  adv
-        { manualFlightModeName,     PX4CustomMode::MANUAL,          true,   true },
-        { stabilizedFlightModeName, PX4CustomMode::STABILIZED,      true,   true },
-        { acroFlightModeName,       PX4CustomMode::ACRO,            true,   true },
-        { rattitudeFlightModeName,  PX4CustomMode::RATTITUDE,       true,   false},
-        { altCtlFlightModeName,     PX4CustomMode::ALTCTL,          true,   false},
-        { offboardFlightModeName,   PX4CustomMode::OFFBOARD,        true,   true },
+        { manualFlightModeName,     PX4CustomMode::MANUAL,          false,  true },
+        { stabilizedFlightModeName, PX4CustomMode::STABILIZED,      false,  true },
+        { acroFlightModeName,       PX4CustomMode::ACRO,            false,  true },
+        { rattitudeFlightModeName,  PX4CustomMode::RATTITUDE,       false,  false},
+        { altCtlFlightModeName,     PX4CustomMode::ALTCTL,          false,  false},
+        { offboardFlightModeName,   PX4CustomMode::OFFBOARD,        false,  true },
         { simpleFlightModeName,     PX4CustomMode::SIMPLE,          false,  false},
-        { posCtlFlightModeName,     PX4CustomMode::POSCTL_POSCTL,   true,   false},
+        { posCtlFlightModeName,     PX4CustomMode::POSCTL_POSCTL,   false,  false},
         { orbitFlightModeName,      PX4CustomMode::POSCTL_ORBIT,    false,  true },
         { holdFlightModeName,       PX4CustomMode::AUTO_LOITER,     true,   true },
         { missionFlightModeName,    PX4CustomMode::AUTO_MISSION,    true,   true },
         { rtlFlightModeName,        PX4CustomMode::AUTO_RTL,        true,   true },
         { landingFlightModeName,    PX4CustomMode::AUTO_LAND,       false,  true },
-        { preclandFlightModeName,   PX4CustomMode::AUTO_PRECLAND,   true,   true },
+        { preclandFlightModeName,   PX4CustomMode::AUTO_PRECLAND,   false,  true },
         { readyFlightModeName,      PX4CustomMode::AUTO_READY,      false,  false},
         { rtgsFlightModeName,       PX4CustomMode::AUTO_RTGS,       false,  false},
         { takeoffFlightModeName,    PX4CustomMode::AUTO_TAKEOFF,    false,  false},
@@ -775,6 +776,15 @@ QVariant PX4FirmwarePlugin::mainStatusIndicatorContentItem(const Vehicle*) const
     return QVariant::fromValue(QUrl::fromUserInput("qrc:/PX4/Indicators/PX4MainStatusIndicatorContentItem.qml"));
 }
 
+// Chamchi GCS: Vehicle has gimbal with pitch and yaw support
+bool PX4FirmwarePlugin::hasGimbal(Vehicle* /*vehicle*/, bool& rollSupported, bool& pitchSupported, bool& yawSupported) const
+{
+    rollSupported = false;
+    pitchSupported = true;
+    yawSupported = true;
+    return true;
+}
+
 const QVariantList& PX4FirmwarePlugin::toolIndicators(const Vehicle* vehicle)
 {
     if (_toolIndicatorList.size() == 0) {
@@ -796,6 +806,9 @@ const QVariantList& PX4FirmwarePlugin::toolIndicators(const Vehicle* vehicle)
                 break;
             }
         }
+
+        // Chamchi GCS: Remove RC RSSI indicator
+        _toolIndicatorList.removeOne(QVariant::fromValue(QUrl::fromUserInput("qrc:/qml/QGroundControl/Toolbar/RCRSSIIndicator.qml")));
     }
 
     return _toolIndicatorList;

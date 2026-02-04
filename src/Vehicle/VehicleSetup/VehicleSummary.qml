@@ -18,7 +18,7 @@ import QGroundControl.ScreenTools
 import QGroundControl.MultiVehicleManager
 import QGroundControl.Palette
 import QGroundControl.AutoPilotPlugins.PX4
-import QGroundControl.AutoPilotPlugins.APM
+// APM import removed for custom build
 
 Rectangle {
     id:             _summaryRoot
