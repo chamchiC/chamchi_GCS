@@ -582,7 +582,7 @@ Item {
                         
                         try {
                             _activeVehicle.sendFireMissionStart(_targetSystemId, 191, targetLat, targetLon, _targetAltitude, autoFire, maxProjectiles, _takeoffSpeed, _flightSpeed);
-                            QGroundControl.showAppMessage(qsTr("Mission Start"));
+                            QGroundControl.showAppMessage(qsTr("Mission Start: Lat %1, Lon %2, Alt %3m, 이륙:%4m/s, 비행:%5m/s").arg(savedTargetPos.latitude.toFixed(6)).arg(savedTargetPos.longitude.toFixed(6)).arg(_targetAltitude.toFixed(1)).arg(_takeoffSpeed.toFixed(1)).arg(_flightSpeed.toFixed(1)));
                         } catch(e) {
                             console.error("Error:", e);
                             QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
@@ -618,7 +618,7 @@ Item {
                         }
                         try {
                             _activeVehicle.sendAutoAim(_targetSystemId, 191);
-                            QGroundControl.showAppMessage(qsTr("Auto Aim sent"));
+                            QGroundControl.showAppMessage(qsTr("Auto Aim (60001) sent to ID: %1").arg(_targetSystemId));
                         } catch(e) {
                             console.error("Error:", e);
                             QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
@@ -654,7 +654,7 @@ Item {
                         }
                         try {
                             _activeVehicle.sendFireCommand(_targetSystemId, 191);
-                            QGroundControl.showAppMessage(qsTr("Fire Command sent"));
+                            QGroundControl.showAppMessage(qsTr("Fire Command (60002) sent to ID: %1").arg(_targetSystemId));
                         } catch(e) {
                             console.error("Error:", e);
                             QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
