@@ -30,11 +30,13 @@ git push origin main
 ```
 
 ### 2. 빌드 (AI가 직접 실행, 보통은 'ninja: no work to do.' 메시지가 응답될 것임)
-```powershell
-C:\Qt\Tools\CMake_64\bin\cmake.exe --build "build/Desktop_Qt_6_8_3_MSVC2022_64bit-Release" --config Release
+```cmd
+cmd /c '"C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat" && C:\Qt\Tools\CMake_64\bin\cmake.exe --build "C:\Users\coslb\qgroundcontrol_v4\build\Desktop_Qt_6_8_3_MSVC2022_64bit-Release" --config Release'
 ```
+- **중요**: MSVC 환경 설정(vcvars64.bat)을 먼저 실행해야 함
 - block_until_ms: 600000 (10분 대기)
 - 작업 디렉토리: c:\Users\coslb\qgroundcontrol_v4
+- **클린 빌드가 필요한 경우**: 사용자에게 Qt Creator에서 직접 클린 빌드를 해볼 것인지 먼저 물어볼 것
 
 ### 3. 배포 폴더 준비
 ```powershell

@@ -24,8 +24,6 @@ Window {
     height: 300
     minimumWidth: 300
     minimumHeight: 200
-    visibility: Window.Windowed  // 항상 창모드로 열기
-    
     title: qsTr("Custom Window")
     
     // 창이 닫힐 때 파괴되도록 설정

@@ -31,8 +31,8 @@ ApplicationWindow {
     id:             mainWindow
     visible:        true
     
-    // Custom: 첫 번째 모니터에서 전체화면으로 시작
-    visibility:     Window.FullScreen
+    // Custom: 창모드로 시작
+    visibility:     Window.Windowed
 
     property bool   _utmspSendActTrigger
     property bool   _utmspStartTelemetry
@@ -60,21 +60,27 @@ ApplicationWindow {
                        " at (" + primaryScreen.virtualX + "," + primaryScreen.virtualY + ")")
         }
         
-        // 전체화면 강제 적용 (약간의 딜레이 후)
-        fullscreenTimer.start()
+        // 창모드 강제 적용 (약간의 딜레이 후)
+        windowModeTimer.start()
         
         // Start the sequence of first run prompt(s)
         firstRunPromptManager.nextPrompt()
     }
     
-    // 전체화면 강제 적용 타이머
+    // 창모드 강제 적용 타이머
     Timer {
-        id: fullscreenTimer
+        id: windowModeTimer
         interval: 100
         repeat: false
         onTriggered: {
-            mainWindow.visibility = Window.FullScreen
-            console.log("QGC fullscreen applied")
+            mainWindow.visibility = Window.Windowed
+            // 창 크기 및 위치 설정
+            var currentScreen = mainWindow.screen
+            mainWindow.width = 1280
+            mainWindow.height = 720
+            mainWindow.x = currentScreen.virtualX + (currentScreen.width - 1280) / 2
+            mainWindow.y = currentScreen.virtualY + (currentScreen.height - 720) / 2
+            console.log("QGC window mode applied")
         }
     }
 
