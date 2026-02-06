@@ -564,13 +564,13 @@ Item {
                     anchors.fill: parent
                     onClicked: {
                         if (!_activeVehicle) {
-                            QGroundControl.showAppMessage(qsTr("No active vehicle"));
+                            console.warn("Mission Start: No active vehicle")
                             return;
                         }
                         
                         var savedTargetPos = QGroundControl.fireMissionTargetPosition
                         if (!savedTargetPos.isValid || savedTargetPos.latitude === 0 || savedTargetPos.longitude === 0) {
-                            QGroundControl.showAppMessage(qsTr("No target position saved"));
+                            console.warn("Mission Start: No target position saved")
                             return;
                         }
                         
@@ -581,10 +581,9 @@ Item {
                         
                         try {
                             _activeVehicle.sendFireMissionStart(_targetSystemId, 191, targetLat, targetLon, _targetAltitude, autoFire, maxProjectiles, _takeoffSpeed, _flightSpeed);
-                            QGroundControl.showAppMessage(qsTr("Mission Start: Lat %1, Lon %2, Alt %3m, 이륙:%4m/s, 비행:%5m/s").arg(savedTargetPos.latitude.toFixed(6)).arg(savedTargetPos.longitude.toFixed(6)).arg(_targetAltitude.toFixed(1)).arg(_takeoffSpeed.toFixed(1)).arg(_flightSpeed.toFixed(1)));
+                            console.log("Mission Start sent: Lat " + savedTargetPos.latitude.toFixed(6) + ", Lon " + savedTargetPos.longitude.toFixed(6) + ", Alt " + _targetAltitude.toFixed(1) + "m, 이륙:" + _takeoffSpeed.toFixed(1) + "m/s, 비행:" + _flightSpeed.toFixed(1) + "m/s")
                         } catch(e) {
-                            console.error("Error:", e);
-                            QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
+                            console.error("Mission Start Error:", e);
                         }
                     }
                 }
@@ -612,15 +611,14 @@ Item {
                     anchors.fill: parent
                     onClicked: {
                         if (!_activeVehicle) {
-                            QGroundControl.showAppMessage(qsTr("No active vehicle"));
+                            console.warn("Auto Aim: No active vehicle")
                             return;
                         }
                         try {
                             _activeVehicle.sendAutoAim(_targetSystemId, 191);
-                            QGroundControl.showAppMessage(qsTr("Auto Aim (60001) sent to ID: %1").arg(_targetSystemId));
+                            console.log("Auto Aim (60001) sent to ID: " + _targetSystemId)
                         } catch(e) {
-                            console.error("Error:", e);
-                            QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
+                            console.error("Auto Aim Error:", e);
                         }
                     }
                 }
@@ -648,15 +646,14 @@ Item {
                     anchors.fill: parent
                     onClicked: {
                         if (!_activeVehicle) {
-                            QGroundControl.showAppMessage(qsTr("No active vehicle"));
+                            console.warn("Fire Command: No active vehicle")
                             return;
                         }
                         try {
                             _activeVehicle.sendFireCommand(_targetSystemId, 191);
-                            QGroundControl.showAppMessage(qsTr("Fire Command (60002) sent to ID: %1").arg(_targetSystemId));
+                            console.log("Fire Command (60002) sent to ID: " + _targetSystemId)
                         } catch(e) {
-                            console.error("Error:", e);
-                            QGroundControl.showAppMessage(qsTr("Error: %1").arg(e.toString()));
+                            console.error("Fire Command Error:", e);
                         }
                     }
                 }
@@ -684,11 +681,11 @@ Item {
                     anchors.fill: parent
                     onClicked: {
                         if (!_activeVehicle) {
-                            QGroundControl.showAppMessage(qsTr("No active vehicle"));
+                            console.warn("RTL: No active vehicle")
                             return;
                         }
                         _activeVehicle.sendReturnToLaunch(_targetSystemId, 191);
-                        QGroundControl.showAppMessage(qsTr("RTL command sent"));
+                        console.log("RTL command sent to ID: " + _targetSystemId)
                     }
                 }
             }
