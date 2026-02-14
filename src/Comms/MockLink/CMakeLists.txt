@@ -1,6 +1,7 @@
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    return()
-endif()
+# Custom: MockLink을 Release에서도 컴파일 허용 (시뮬레이션 테스트용)
+# if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+#     return()
+# endif()
 
 target_sources(${CMAKE_PROJECT_NAME}
     PRIVATE

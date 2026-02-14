@@ -163,8 +163,12 @@ Item {
         anchors.horizontalCenter:   parent.horizontalCenter
     }
 
+    // Custom: 멀티기체 연결 시 나침반/자세계 숨김 (멀티기체 패널에 각 기체별 정보 표시됨)
+    property bool _multipleVehicles: QGroundControl.multiVehicleManager.vehicles.count > 1
+
     Rectangle {
         id:                     compassBackground
+        visible:                !_multipleVehicles
         anchors.bottom:         attitudeIndicator.bottom
         anchors.right:          attitudeIndicator.left
         anchors.rightMargin:    -attitudeIndicator.width / 2
@@ -243,6 +247,7 @@ Item {
 
     Rectangle {
         id:                     attitudeIndicator
+        visible:                !_multipleVehicles
         anchors.bottomMargin:   _toolsMargin + parentToolInsets.bottomEdgeRightInset
         anchors.rightMargin:    _toolsMargin
         anchors.bottom:         parent.bottom
@@ -282,7 +287,40 @@ Item {
     property real _fieldWidth: ScreenTools.defaultFontPixelWidth * 9
     property real _panelRadius: ScreenTools.defaultFontPixelWidth * 0.5
     property real _buttonPadding: ScreenTools.defaultFontPixelWidth * 3
-    
+
+    // Custom: 전달 모드 (0: 단일 기체, 1: 전체 기체, 2: 선택된 기체)
+    property int _sendMode: 0
+
+    // 커스텀 메시지를 전달 모드에 따라 전송하는 헬퍼 함수
+    // 반환값: 전송 결과 문자열 (Toast 표시용)
+    function sendToVehicles(commandFunc) {
+        if (_sendMode === 0) {
+            // 단일 기체: ID 입력칸의 targetSystemId와 일치하는 기체를 찾아 전송
+            var vehicles = QGroundControl.multiVehicleManager.vehicles
+            var found = false
+            for (var i = 0; i < vehicles.count; i++) {
+                var v = vehicles.get(i)
+                if (v.id === _targetSystemId) {
+                    commandFunc(v)
+                    found = true
+                    break
+                }
+            }
+            if (!found) {
+                return qsTr("ID %1 기체를 찾을 수 없습니다").arg(_targetSystemId)
+            }
+            return qsTr("ID %1").arg(_targetSystemId)
+        } else if (_sendMode === 1) {
+            // 전체 기체
+            var allVehicles = QGroundControl.multiVehicleManager.vehicles
+            for (var j = 0; j < allVehicles.count; j++) {
+                commandFunc(allVehicles.get(j))
+            }
+            return qsTr("전체 %1대").arg(allVehicles.count)
+        }
+        return ""
+    }
+
     // 버튼 패널 (하단 중앙에 배치)
     Row {
         id: buttonPanel
@@ -536,12 +574,54 @@ Item {
             }
         }
         
+        // ========== 전달 모드 선택 ==========
+        Rectangle {
+            id: sendModePanel
+            width: sendModeRow.width + ScreenTools.defaultFontPixelWidth * 2
+            height: _panelHeight
+            color: qgcPal.windowShade
+            radius: _panelRadius
+            border.color: qgcPal.text
+            border.width: 1
+            anchors.verticalCenter: parent.verticalCenter
+
+            Row {
+                id: sendModeRow
+                anchors.centerIn: parent
+                spacing: 2
+
+                Repeater {
+                    model: [qsTr("단일"), qsTr("전체")]
+
+                    Rectangle {
+                        width: sendModeLabel.contentWidth + ScreenTools.defaultFontPixelWidth * 2
+                        height: _panelHeight * 0.7
+                        radius: 2
+                        color: _sendMode === index ? qgcPal.buttonHighlight : "transparent"
+
+                        QGCLabel {
+                            id: sendModeLabel
+                            anchors.centerIn: parent
+                            text: modelData
+                            font.pointSize: ScreenTools.defaultFontPointSize
+                            color: _sendMode === index ? qgcPal.buttonHighlightText : qgcPal.text
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: _sendMode = index
+                        }
+                    }
+                }
+            }
+        }
+
         // ========== 버튼들 ==========
         Row {
             id: actionButtons
             spacing: ScreenTools.defaultFontPixelWidth
             anchors.verticalCenter: parent.verticalCenter
-            
+
             // 미션 시작 버튼
             Rectangle {
                 id: missionStartButton
@@ -563,28 +643,23 @@ Item {
                     id: missionStartMouseArea
                     anchors.fill: parent
                     onClicked: {
-                        if (!_activeVehicle) {
-                            console.warn("Mission Start: No active vehicle")
-                            return;
-                        }
-                        
                         var savedTargetPos = QGroundControl.fireMissionTargetPosition
                         if (!savedTargetPos.isValid || savedTargetPos.latitude === 0 || savedTargetPos.longitude === 0) {
-                            console.warn("Mission Start: No target position saved")
+                            QGroundControl.showAppMessage(qsTr("타겟 위치가 설정되지 않았습니다"))
                             return;
                         }
-                        
+
                         var targetLat = savedTargetPos.latitude * 1e7;
                         var targetLon = savedTargetPos.longitude * 1e7;
-                        var autoFire = 1;
-                        var maxProjectiles = 10;
-                        
-                        try {
-                            _activeVehicle.sendFireMissionStart(_targetSystemId, 191, targetLat, targetLon, _targetAltitude, autoFire, maxProjectiles, _takeoffSpeed, _flightSpeed);
-                            console.log("Mission Start sent: Lat " + savedTargetPos.latitude.toFixed(6) + ", Lon " + savedTargetPos.longitude.toFixed(6) + ", Alt " + _targetAltitude.toFixed(1) + "m, 이륙:" + _takeoffSpeed.toFixed(1) + "m/s, 비행:" + _flightSpeed.toFixed(1) + "m/s")
-                        } catch(e) {
-                            console.error("Mission Start Error:", e);
-                        }
+
+                        var result = sendToVehicles(function(vehicle) {
+                            try {
+                                vehicle.sendFireMissionStart(_targetSystemId, 191, targetLat, targetLon, _targetAltitude, 1, 10, _takeoffSpeed, _flightSpeed);
+                            } catch(e) {
+                                console.error("Mission Start Error (vehicle " + vehicle.id + "):", e);
+                            }
+                        })
+                        QGroundControl.showAppMessage(qsTr("미션 시작 명령 전송 → %1").arg(result))
                     }
                 }
             }
@@ -610,16 +685,14 @@ Item {
                     id: autoAimMouseArea
                     anchors.fill: parent
                     onClicked: {
-                        if (!_activeVehicle) {
-                            console.warn("Auto Aim: No active vehicle")
-                            return;
-                        }
-                        try {
-                            _activeVehicle.sendAutoAim(_targetSystemId, 191);
-                            console.log("Auto Aim (60001) sent to ID: " + _targetSystemId)
-                        } catch(e) {
-                            console.error("Auto Aim Error:", e);
-                        }
+                        var result = sendToVehicles(function(vehicle) {
+                            try {
+                                vehicle.sendAutoAim(_targetSystemId, 191);
+                            } catch(e) {
+                                console.error("Auto Aim Error (vehicle " + vehicle.id + "):", e);
+                            }
+                        })
+                        QGroundControl.showAppMessage(qsTr("자동 조준 명령 전송 → %1").arg(result))
                     }
                 }
             }
@@ -645,16 +718,14 @@ Item {
                     id: fireMouseArea
                     anchors.fill: parent
                     onClicked: {
-                        if (!_activeVehicle) {
-                            console.warn("Fire Command: No active vehicle")
-                            return;
-                        }
-                        try {
-                            _activeVehicle.sendFireCommand(_targetSystemId, 191);
-                            console.log("Fire Command (60002) sent to ID: " + _targetSystemId)
-                        } catch(e) {
-                            console.error("Fire Command Error:", e);
-                        }
+                        var result = sendToVehicles(function(vehicle) {
+                            try {
+                                vehicle.sendFireCommand(_targetSystemId, 191);
+                            } catch(e) {
+                                console.error("Fire Command Error (vehicle " + vehicle.id + "):", e);
+                            }
+                        })
+                        QGroundControl.showAppMessage(qsTr("발사 명령 전송 → %1").arg(result))
                     }
                 }
             }
@@ -680,12 +751,14 @@ Item {
                     id: returnMouseArea
                     anchors.fill: parent
                     onClicked: {
-                        if (!_activeVehicle) {
-                            console.warn("RTL: No active vehicle")
-                            return;
-                        }
-                        _activeVehicle.sendReturnToLaunch(_targetSystemId, 191);
-                        console.log("RTL command sent to ID: " + _targetSystemId)
+                        var result = sendToVehicles(function(vehicle) {
+                            try {
+                                vehicle.sendReturnToLaunch(_targetSystemId, 191);
+                            } catch(e) {
+                                console.error("RTL Error (vehicle " + vehicle.id + "):", e);
+                            }
+                        })
+                        QGroundControl.showAppMessage(qsTr("복귀 명령 전송 → %1").arg(result))
                     }
                 }
             }

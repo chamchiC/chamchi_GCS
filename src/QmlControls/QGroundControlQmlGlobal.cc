@@ -48,9 +48,7 @@
 #include "GPSManager.h"
 #include "GPSRtk.h"
 #endif
-#ifdef QT_DEBUG
 #include "MockLink.h"
-#endif
 #ifndef QGC_AIRLINK_DISABLED
 #include "AirLinkManager.h"
 #endif
@@ -195,61 +193,36 @@ bool QGroundControlQmlGlobal::loadBoolGlobalSetting (const QString& key, bool de
 
 void QGroundControlQmlGlobal::startPX4MockLink(bool sendStatusText)
 {
-#ifdef QT_DEBUG
     MockLink::startPX4MockLink(sendStatusText);
-#else
-    Q_UNUSED(sendStatusText);
-#endif
 }
 
 void QGroundControlQmlGlobal::startGenericMockLink(bool sendStatusText)
 {
-#ifdef QT_DEBUG
     MockLink::startGenericMockLink(sendStatusText);
-#else
-    Q_UNUSED(sendStatusText);
-#endif
 }
 
 void QGroundControlQmlGlobal::startAPMArduCopterMockLink(bool sendStatusText)
 {
-#ifdef QT_DEBUG
     MockLink::startAPMArduCopterMockLink(sendStatusText);
-#else
-    Q_UNUSED(sendStatusText);
-#endif
 }
 
 void QGroundControlQmlGlobal::startAPMArduPlaneMockLink(bool sendStatusText)
 {
-#ifdef QT_DEBUG
     MockLink::startAPMArduPlaneMockLink(sendStatusText);
-#else
-    Q_UNUSED(sendStatusText);
-#endif
 }
 
 void QGroundControlQmlGlobal::startAPMArduSubMockLink(bool sendStatusText)
 {
-#ifdef QT_DEBUG
     MockLink::startAPMArduSubMockLink(sendStatusText);
-#else
-    Q_UNUSED(sendStatusText);
-#endif
 }
 
 void QGroundControlQmlGlobal::startAPMArduRoverMockLink(bool sendStatusText)
 {
-#ifdef QT_DEBUG
     MockLink::startAPMArduRoverMockLink(sendStatusText);
-#else
-    Q_UNUSED(sendStatusText);
-#endif
 }
 
 void QGroundControlQmlGlobal::stopOneMockLink(void)
 {
-#ifdef QT_DEBUG
     QList<SharedLinkInterfacePtr> sharedLinks = LinkManager::instance()->links();
 
     for (int i=0; i<sharedLinks.count(); i++) {
@@ -260,7 +233,6 @@ void QGroundControlQmlGlobal::stopOneMockLink(void)
             return;
         }
     }
-#endif
 }
 
 bool QGroundControlQmlGlobal::singleFirmwareSupport(void)

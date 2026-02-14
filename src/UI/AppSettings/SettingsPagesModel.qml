@@ -113,7 +113,7 @@ ListModel {
         name: qsTr("Mock Link")
         url: "qrc:/qml/QGroundControl/AppSettings/MockLink.qml"
         iconUrl: "qrc:/InstrumentValueIcons/drone.svg"
-        pageVisible: function() { return ScreenTools.isDebug }
+        pageVisible: function() { return true }
     }
 
     ListElement {

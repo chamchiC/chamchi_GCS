@@ -243,6 +243,52 @@ ApplicationWindow {
         showMessageDialog(dialogTitle, dialogText)
     }
 
+    // Custom: Toast 알림 (자동 소멸)
+    function showToast(message) {
+        toastLabel.text = message
+        toastRect.opacity = 1
+        toastHideTimer.restart()
+    }
+
+    function _showToast(dialogTitle, dialogText) {
+        showToast(dialogText)
+    }
+
+    Rectangle {
+        id: toastRect
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: ScreenTools.defaultFontPixelHeight * 2
+        width: toastLabel.contentWidth + ScreenTools.defaultFontPixelWidth * 4
+        height: toastLabel.contentHeight + ScreenTools.defaultFontPixelHeight
+        radius: ScreenTools.defaultFontPixelHeight / 2
+        color: Qt.rgba(0, 0, 0, 0.8)
+        opacity: 0
+        visible: opacity > 0
+        z: 100000
+
+        Behavior on opacity {
+            NumberAnimation { duration: 300 }
+        }
+
+        QGCLabel {
+            id: toastLabel
+            anchors.centerIn: parent
+            color: "white"
+            font.pointSize: ScreenTools.defaultFontPointSize
+            wrapMode: Text.WordWrap
+            maximumLineCount: 3
+            width: Math.min(implicitWidth, mainWindow.width * 0.8)
+        }
+
+        Timer {
+            id: toastHideTimer
+            interval: 2000
+            repeat: false
+            onTriggered: toastRect.opacity = 0
+        }
+    }
+
     Component {
         id: simpleMessageDialogComponent
 

@@ -505,6 +505,80 @@ FlightMap {
         }
     }
 
+    // Custom: Fire Mission 타겟 위치 마커
+    MapQuickItem {
+        id:             targetPositionMarker
+        coordinate:     QGroundControl.fireMissionTargetPosition
+        visible:        QGroundControl.fireMissionTargetPosition.isValid &&
+                        QGroundControl.fireMissionTargetPosition.latitude !== 0 &&
+                        QGroundControl.fireMissionTargetPosition.longitude !== 0
+        z:              QGroundControl.zOrderTopMost
+        anchorPoint.x:  targetMarkerItem.width / 2
+        anchorPoint.y:  targetMarkerItem.height / 2
+
+        sourceItem: Item {
+            id:     targetMarkerItem
+            width:  ScreenTools.defaultFontPixelHeight * 3
+            height: width
+
+            // 외곽 원
+            Rectangle {
+                anchors.fill:   parent
+                radius:         width / 2
+                color:          "transparent"
+                border.color:   "red"
+                border.width:   2
+            }
+
+            // 내부 원
+            Rectangle {
+                anchors.centerIn: parent
+                width:          parent.width * 0.3
+                height:         width
+                radius:         width / 2
+                color:          "transparent"
+                border.color:   "red"
+                border.width:   2
+            }
+
+            // 가로 십자선
+            Rectangle {
+                anchors.centerIn: parent
+                width:          parent.width
+                height:         2
+                color:          "red"
+            }
+
+            // 세로 십자선
+            Rectangle {
+                anchors.centerIn: parent
+                width:          2
+                height:         parent.height
+                color:          "red"
+            }
+
+            // "T" 라벨
+            Rectangle {
+                anchors.top:                parent.bottom
+                anchors.horizontalCenter:   parent.horizontalCenter
+                anchors.topMargin:          2
+                width:                      targetLabel.contentWidth + ScreenTools.defaultFontPixelWidth
+                height:                     targetLabel.contentHeight + 2
+                radius:                     2
+                color:                      "red"
+
+                QGCLabel {
+                    id:                 targetLabel
+                    anchors.centerIn:   parent
+                    text:               "TARGET"
+                    color:              "white"
+                    font.pointSize:     ScreenTools.smallFontPointSize
+                    font.bold:          true
+                }
+            }
+        }
+    }
+
     // Orbit editing visuals
     QGCMapCircleVisuals {
         id:             orbitMapCircle

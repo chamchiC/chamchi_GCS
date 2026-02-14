@@ -82,9 +82,7 @@ public:
 #ifdef QGC_ENABLE_BLUETOOTH
         TypeBluetooth,  ///< Bluetooth Link
 #endif
-#ifdef QT_DEBUG
         TypeMock,       ///< Mock Link for Unitesting
-#endif
 #ifndef QGC_AIRLINK_DISABLED
         AirLink,
 #endif

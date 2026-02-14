@@ -73,7 +73,7 @@ Item {
         bottomEdgeRightInset:   bottomRightRowLayout.bottomEdgeRightInset
     }
 
-    // Custom: 오른쪽 패널을 하단으로 이동
+    // Custom: 멀티기체 패널 - 하단 오른쪽
     FlyViewTopRightPanel {
         id:                     bottomRightPanel
         anchors.bottom:         parent.bottom
@@ -87,7 +87,21 @@ Item {
         property real rightEdgeCenterInset:  rightEdgeBottomInset
     }
 
-    // Custom: 오른쪽 컬럼 레이아웃도 하단으로
+    // Custom: 나침반/텔레메트리 - 멀티기체 패널이 보이면 숨김
+    FlyViewBottomRightRowLayout {
+        id:                 bottomRightRowLayout
+        anchors.margins:    _layoutMargin
+        anchors.bottom:     parent.bottom
+        anchors.right:      parent.right
+        spacing:            _layoutSpacing
+        visible:            !bottomRightPanel.visible
+
+        property real bottomEdgeRightInset:     visible ? height + _layoutMargin : 0
+        property real bottomEdgeCenterInset:    bottomEdgeRightInset
+        property real rightEdgeBottomInset:     visible ? width + _layoutMargin : 0
+    }
+
+    // Custom: 오른쪽 컬럼 레이아웃 (멀티기체 패널이 없을 때만 표시)
     FlyViewTopRightColumnLayout {
         id:                 bottomRightColumnLayout
         anchors.margins:    _layoutMargin
@@ -100,18 +114,6 @@ Item {
         property real bottomEdgeRightInset:  childrenRect.height + _layoutMargin
         property real rightEdgeBottomInset:  width + _layoutMargin
         property real rightEdgeCenterInset:  rightEdgeBottomInset
-    }
-
-    FlyViewBottomRightRowLayout {
-        id:                 bottomRightRowLayout
-        anchors.margins:    _layoutMargin
-        anchors.bottom:     parent.bottom
-        anchors.right:      parent.right
-        spacing:            _layoutSpacing
-
-        property real bottomEdgeRightInset:     height + _layoutMargin
-        property real bottomEdgeCenterInset:    bottomEdgeRightInset
-        property real rightEdgeBottomInset:     width + _layoutMargin
     }
 
     FlyViewMissionCompleteDialog {

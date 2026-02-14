@@ -21,12 +21,13 @@ import QGroundControl.ScreenTools
 
 Window {
     id: customWindow
-    
+
     width: 960
     height: 320
     minimumWidth: 480
     minimumHeight: 200
-    
+    flags: Qt.Window | Qt.WindowStaysOnTopHint
+
     title: qsTr("Video Monitor")
     
     color: qgcPal.window
@@ -132,12 +133,35 @@ Window {
         }
     }
     
-    // 개별 비디오 재연결 함수
+    // 개별 비디오 재연결 함수 (딜레이 포함)
     function reconnectVideo(player, url) {
+        player.stop()
+        player.source = ""
+        reconnectDelayTimer.playerToReconnect = player
+        reconnectDelayTimer.urlToReconnect = url
+        reconnectDelayTimer.restart()
+    }
+
+    // 즉시 재연결 (타이머 없이)
+    function reconnectVideoImmediate(player, url) {
         player.stop()
         player.source = ""
         player.source = url
         player.play()
+    }
+
+    Timer {
+        id: reconnectDelayTimer
+        interval: 1000
+        repeat: false
+        property var playerToReconnect: null
+        property string urlToReconnect: ""
+        onTriggered: {
+            if (playerToReconnect) {
+                playerToReconnect.source = urlToReconnect
+                playerToReconnect.play()
+            }
+        }
     }
     
     // 비디오 새로고침 함수 - source를 초기화하고 다시 설정
@@ -318,9 +342,16 @@ Window {
                     videoOutput: videoOutput1
                     audioOutput: null
                     Component.onCompleted: play()
-                    
+
                     onErrorOccurred: function(error, errorString) {
                         console.log("Video 1 error:", errorString)
+                        if (autoReconnect) reconnectVideo(videoPlayer1, videoUrl1)
+                    }
+                    onMediaStatusChanged: {
+                        if ((mediaStatus === MediaPlayer.InvalidMedia || mediaStatus === MediaPlayer.EndOfMedia) && autoReconnect) {
+                            console.log("Video 1 media status changed to " + mediaStatus + ", reconnecting...")
+                            reconnectVideo(videoPlayer1, videoUrl1)
+                        }
                     }
                 }
             }
@@ -343,9 +374,16 @@ Window {
                     videoOutput: videoOutput2
                     audioOutput: null
                     Component.onCompleted: play()
-                    
+
                     onErrorOccurred: function(error, errorString) {
                         console.log("Video 2 error:", errorString)
+                        if (autoReconnect) reconnectVideo(videoPlayer2, videoUrl2)
+                    }
+                    onMediaStatusChanged: {
+                        if ((mediaStatus === MediaPlayer.InvalidMedia || mediaStatus === MediaPlayer.EndOfMedia) && autoReconnect) {
+                            console.log("Video 2 media status changed to " + mediaStatus + ", reconnecting...")
+                            reconnectVideo(videoPlayer2, videoUrl2)
+                        }
                     }
                 }
             }
@@ -368,9 +406,16 @@ Window {
                     videoOutput: videoOutput3
                     audioOutput: null
                     Component.onCompleted: play()
-                    
+
                     onErrorOccurred: function(error, errorString) {
                         console.log("Video 3 error:", errorString)
+                        if (autoReconnect) reconnectVideo(videoPlayer3, videoUrl3)
+                    }
+                    onMediaStatusChanged: {
+                        if ((mediaStatus === MediaPlayer.InvalidMedia || mediaStatus === MediaPlayer.EndOfMedia) && autoReconnect) {
+                            console.log("Video 3 media status changed to " + mediaStatus + ", reconnecting...")
+                            reconnectVideo(videoPlayer3, videoUrl3)
+                        }
                     }
                 }
             }

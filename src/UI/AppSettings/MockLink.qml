@@ -43,6 +43,15 @@ Rectangle {
                 text:           qsTr("Send status text + voice")
             }
             QGCButton {
+                text:               qsTr("PX4 x3 (Multi-Vehicle Test)")
+                Layout.fillWidth:   true
+                onClicked: {
+                    QGroundControl.startPX4MockLink(sendStatusText.checked)
+                    QGroundControl.startPX4MockLink(sendStatusText.checked)
+                    QGroundControl.startPX4MockLink(sendStatusText.checked)
+                }
+            }
+            QGCButton {
                 text:               qsTr("PX4 Vehicle")
                 Layout.fillWidth:   true
                 onClicked:          QGroundControl.startPX4MockLink(sendStatusText.checked)
