@@ -11,6 +11,8 @@ alwaysApply: true
 
 - **빌드는 AI가 직접 수행** (빌드 실패 시에만 사용자에게 빌드 요청할 것)
 - 모든 단계를 AI가 순차적으로 실행
+- **PowerShell에서 `$env:USERPROFILE` 사용 금지** — 반드시 직접 경로 `C:\Users\coslb` 사용
+- **cmd /c로 exe 호출 시 출력 안 나올 수 있음** — exe는 직접 호출하거나 bat 파일 경유
 
 ## 버전 규칙
 
@@ -23,84 +25,69 @@ alwaysApply: true
 ## 프로세스
 
 ### 1. 코드 커밋 & 푸시
-```powershell
-git add -A
-git commit -m "변경 내용 요약"
-git push origin main
+```bash
+cd "c:\Projects\EasySystem\GCS\chamchi_GCS" && git add -A && git commit -m "vX.X.X: 변경 내용 요약" && git push origin main
 ```
 
-### 2. 빌드 (AI가 직접 실행, 'ninja: no work to do.' 메시지가 응답되면 사용자가 빌드 완료한 것임임)
-```cmd
-cmd /c '"C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvars64.bat" && C:\Qt\Tools\CMake_64\bin\cmake.exe --build "C:\Projects\EasySystem\GCS\chamchi_GCS\build\Desktop_Qt_6_8_3_MSVC2022_64bit-Release" --config Release'
+### 2. 빌드
+
+**빌드 명령 (검증됨):**
+```bash
+cmd //c "C:\\Users\\coslb\\build_qgc.bat" 2>&1
 ```
-- **중요**: MSVC 환경 설정(vcvars64.bat)을 먼저 실행해야 함
-- block_until_ms: 600000 (10분 대기)
-- 작업 디렉토리: C:\Projects\EasySystem\GCS\chamchi_GCS
-- **클린 빌드가 필요한 경우**: 사용자에게 Qt Creator에서 직접 클린 빌드를 해볼 것인지 먼저 물어볼 것
+- timeout: 600000 (10분)
+- `build_qgc.bat`이 MSVC 환경(vcvarsall.bat) + CMake 빌드를 통합 처리
+- 성공 시 마지막 줄에 `EXIT_CODE: 0` 출력됨
+- `ninja: no work to do.` 메시지 = 이미 빌드 완료 상태
+
+**QML만 수정한 경우** CMake가 변경 감지 못할 수 있으므로 reconfigure 먼저:
+```bash
+"C:\Qt\Tools\CMake_64\bin\cmake.exe" "c:\Projects\EasySystem\GCS\chamchi_GCS\build\Desktop_Qt_6_8_3_MSVC2022_64bit-Release"
+```
+그 후 위 빌드 명령 실행.
+
+**클린 빌드 필요 시**: 사용자에게 Qt Creator에서 직접 클린 빌드 요청.
 
 ### 3. 배포 폴더 준비
-```powershell
-# 기존 폴더 삭제 후 구성요소 복사
-Remove-Item "C:\chamchi_GCS" -Recurse -Force -ErrorAction SilentlyContinue
-Copy-Item "C:\chamchi_GCS_Deploy_Files" "C:\chamchi_GCS" -Recurse -Force
-
-# 실행파일 복사
-Copy-Item "build/Desktop_Qt_6_8_3_MSVC2022_64bit-Release/Release/Chamchi_GCS.exe" "C:\chamchi_GCS\chamchi_GCS.exe" -Force
+```bash
+powershell -Command "Remove-Item 'C:\chamchi_GCS' -Recurse -Force -ErrorAction SilentlyContinue; Copy-Item 'C:\chamchi_GCS_Deploy_Files' 'C:\chamchi_GCS' -Recurse -Force; Copy-Item 'C:\Projects\EasySystem\GCS\chamchi_GCS\build\Desktop_Qt_6_8_3_MSVC2022_64bit-Release\Release\Chamchi_GCS.exe' 'C:\chamchi_GCS\chamchi_GCS.exe' -Force; dir 'C:\chamchi_GCS\chamchi_GCS.exe'"
 ```
-- 구성요소 폴더: C:\chamchi_GCS_Deploy_Files (DLL 193개, 폴더 19개, 672MB)
+- 구성요소 폴더: C:\chamchi_GCS_Deploy_Files (DLL, 플러그인 등 - exe 제외)
 
 ### 4. ZIP 생성
-```powershell
-Compress-Archive -Path "C:\chamchi_GCS\*" -DestinationPath "$env:USERPROFILE\chamchi_GCS_vX.X.X.zip" -Force
+```bash
+powershell -Command "Remove-Item 'C:\Users\coslb\chamchi_GCS_vX.X.X.zip' -Force -ErrorAction SilentlyContinue; Compress-Archive -Path 'C:\chamchi_GCS\*' -DestinationPath 'C:\Users\coslb\chamchi_GCS_vX.X.X.zip' -Force; dir 'C:\Users\coslb\chamchi_GCS_vX.X.X.zip'"
 ```
+- timeout: 300000 (5분, 파일 크기 ~280MB)
+- **주의: `$env:USERPROFILE` 쓰지 말 것** — 싱글쿼트 안에서 확장 안됨
 
 ### 5. 설치파일 생성 (Inno Setup)
-```powershell
-$version = "X.X.X"
-$script = @"
-[Setup]
-AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
-AppName=Chamchi GCS
-AppVersion=$version
-AppPublisher=chamchiC
-AppPublisherURL=https://github.com/chamchiC/chamchi_GCS
-DefaultDirName={autopf}\Chamchi GCS
-DefaultGroupName=Chamchi GCS
-OutputDir=C:\Users\coslb
-OutputBaseFilename=chamchi_GCS_v${version}_setup
-Compression=lzma2
-SolidCompression=yes
-WizardStyle=modern
 
-[Languages]
-Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
-Name: "english"; MessagesFile: "compiler:Default.isl"
+**ISS 파일은 이미 존재함** (`C:\Users\coslb\chamchi_GCS_setup.iss`). 버전만 Edit 도구로 수정:
+- `AppVersion=X.X.X` 업데이트
+- `OutputBaseFilename=chamchi_GCS_vX.X.X_setup` 업데이트
 
-[Tasks]
-Name: "desktopicon"; Description: "바탕화면에 바로가기 만들기"; GroupDescription: "추가 옵션:"
-
-[Files]
-Source: "C:\chamchi_GCS\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-
-[Icons]
-Name: "{group}\Chamchi GCS"; Filename: "{app}\chamchi_GCS.exe"
-Name: "{group}\Chamchi GCS 제거"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\Chamchi GCS"; Filename: "{app}\chamchi_GCS.exe"; Tasks: desktopicon
-
-[Run]
-Filename: "{app}\chamchi_GCS.exe"; Description: "Chamchi GCS 실행"; Flags: nowait postinstall skipifsilent
-"@
-$script | Out-File -FilePath "$env:USERPROFILE\chamchi_GCS_setup.iss" -Encoding UTF8
-& "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" "$env:USERPROFILE\chamchi_GCS_setup.iss"
+**Inno Setup 컴파일 (검증됨):**
+```bash
+"C:\Users\coslb\AppData\Local\Programs\Inno Setup 6\ISCC.exe" "C:\Users\coslb\chamchi_GCS_setup.iss"
 ```
+- timeout: 600000 (10분, 압축에 약 5분 소요)
+- **cmd /c로 감싸지 말 것** — 출력이 안 나옴, 직접 호출할 것
+- 성공 시 `Successful compile` 메시지 + 결과 파일 경로 출력
 
 ### 6. GitHub 릴리즈
-```powershell
-git tag -a vX.X.X -m "vX.X.X" --force
-git push origin vX.X.X --force
-gh release delete vX.X.X -y 2>$null
-gh release create vX.X.X "$env:USERPROFILE\chamchi_GCS_vX.X.X.zip" "$env:USERPROFILE\chamchi_GCS_vX.X.X_setup.exe" --title "vX.X.X" --notes "변경 내용"
+```bash
+cd "c:\Projects\EasySystem\GCS\chamchi_GCS" && git tag -a vX.X.X -m "vX.X.X" --force && git push origin vX.X.X --force
 ```
+
+```bash
+cd "c:\Projects\EasySystem\GCS\chamchi_GCS" && gh release delete vX.X.X -y 2>nul; gh release create vX.X.X "C:\Users\coslb\chamchi_GCS_vX.X.X.zip" "C:\Users\coslb\chamchi_GCS_vX.X.X_setup.exe" --title "vX.X.X" --notes "$(cat <<'EOF'
+- 변경 내용 1
+- 변경 내용 2
+EOF
+)"
+```
+- heredoc으로 릴리즈 노트 전달 (따옴표 이슈 방지)
 
 ## 릴리즈 노트
 
@@ -112,3 +99,5 @@ gh release create vX.X.X "$env:USERPROFILE\chamchi_GCS_vX.X.X.zip" "$env:USERPRO
 - GitHub: https://github.com/chamchiC/chamchi_GCS
 - 로컬 배포 폴더: C:\chamchi_GCS\
 - 구성요소 폴더: C:\chamchi_GCS_Deploy_Files\ (DLL, 플러그인 등 - exe 제외)
+- ISS 파일: C:\Users\coslb\chamchi_GCS_setup.iss (버전만 수정해서 재사용)
+- 빌드 배치: C:\Users\coslb\build_qgc.bat

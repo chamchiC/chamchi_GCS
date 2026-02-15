@@ -220,11 +220,28 @@ Window {
         anchors.margins: 5
         spacing: 5
         
-        // 상단 버튼 영역
-        RowLayout {
+        // 상단 버튼 영역 (드래그로 창 이동 가능)
+        Item {
             Layout.fillWidth: true
-            spacing: ScreenTools.defaultFontPixelWidth
-            
+            Layout.preferredHeight: childrenRect.height
+
+            // 빈 영역 드래그로 창 이동
+            MouseArea {
+                anchors.fill: parent
+                property point _pressPos
+                onPressed: function(mouse) { _pressPos = Qt.point(mouse.x, mouse.y) }
+                onPositionChanged: function(mouse) {
+                    if (pressed && customWindow.visibility !== Window.FullScreen) {
+                        customWindow.x += mouse.x - _pressPos.x
+                        customWindow.y += mouse.y - _pressPos.y
+                    }
+                }
+            }
+
+            RowLayout {
+                width: parent.width
+                spacing: ScreenTools.defaultFontPixelWidth
+
             // 탭 버튼들
             Row {
                 spacing: 2
@@ -294,8 +311,9 @@ Window {
                 text: qsTr("Close")
                 onClicked: customWindow.close()
             }
-        }
-        
+            } // RowLayout
+        } // Item (드래그 영역)
+
         // WebGUI 영역 (탭 1)
         Rectangle {
             Layout.fillWidth: true

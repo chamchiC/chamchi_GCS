@@ -53,7 +53,7 @@ Item {
     property alias  _gripperMenu:           gripperOptions
     property real   _layoutMargin:          ScreenTools.defaultFontPixelWidth * 0.75
     property bool   _layoutSpacing:         ScreenTools.defaultFontPixelWidth
-    property bool   _showSingleVehicleUI:   true
+    property bool   _showSingleVehicleUI:   !bottomRightPanel.visible
 
     property bool utmspActTrigger
 
@@ -73,32 +73,31 @@ Item {
         bottomEdgeRightInset:   bottomRightRowLayout.bottomEdgeRightInset
     }
 
-    // Custom: 멀티기체 패널 - 하단 오른쪽
-    FlyViewTopRightPanel {
-        id:                     bottomRightPanel
-        anchors.bottom:         parent.bottom
-        anchors.right:          parent.right
-        anchors.bottomMargin:   _layoutMargin
-        anchors.rightMargin:    _layoutMargin
-        maximumHeight:          parent.height - _margins * 5
-
-        property real bottomEdgeRightInset:  height + _layoutMargin
-        property real rightEdgeBottomInset:  width + _layoutMargin
-        property real rightEdgeCenterInset:  rightEdgeBottomInset
-    }
-
-    // Custom: 나침반/텔레메트리 - 멀티기체 패널이 보이면 숨김
+    // Custom: 텔레메트리 항상 최하단, 나침반은 _showSingleVehicleUI로 제어
     FlyViewBottomRightRowLayout {
         id:                 bottomRightRowLayout
         anchors.margins:    _layoutMargin
         anchors.bottom:     parent.bottom
         anchors.right:      parent.right
         spacing:            _layoutSpacing
-        visible:            !bottomRightPanel.visible
 
-        property real bottomEdgeRightInset:     visible ? height + _layoutMargin : 0
+        property real bottomEdgeRightInset:     height + _layoutMargin
         property real bottomEdgeCenterInset:    bottomEdgeRightInset
-        property real rightEdgeBottomInset:     visible ? width + _layoutMargin : 0
+        property real rightEdgeBottomInset:     width + _layoutMargin
+    }
+
+    // Custom: 멀티기체 패널 - 텔레메트리 바 위
+    FlyViewTopRightPanel {
+        id:                     bottomRightPanel
+        anchors.bottom:         bottomRightRowLayout.top
+        anchors.bottomMargin:   _layoutMargin
+        anchors.right:          parent.right
+        anchors.rightMargin:    _layoutMargin
+        maximumHeight:          parent.height - bottomRightRowLayout.height - _margins * 5
+
+        property real bottomEdgeRightInset:  height + bottomRightRowLayout.height + _layoutMargin * 2
+        property real rightEdgeBottomInset:  width + _layoutMargin
+        property real rightEdgeCenterInset:  rightEdgeBottomInset
     }
 
     // Custom: 오른쪽 컬럼 레이아웃 (멀티기체 패널이 없을 때만 표시)
