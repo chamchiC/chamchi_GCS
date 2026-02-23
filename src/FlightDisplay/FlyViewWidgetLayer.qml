@@ -55,6 +55,7 @@ Item {
     property bool   _layoutSpacing:         ScreenTools.defaultFontPixelWidth
     property bool   _showSingleVehicleUI:   !bottomRightPanel.visible
 
+    signal toggle3DView
     property bool utmspActTrigger
 
     QGCToolInsets {
@@ -78,6 +79,7 @@ Item {
         id:                 bottomRightRowLayout
         anchors.margins:    _layoutMargin
         anchors.bottom:     parent.bottom
+        anchors.bottomMargin: ScreenTools.defaultFontPixelHeight * 4
         anchors.right:      parent.right
         spacing:            _layoutSpacing
 
@@ -185,6 +187,7 @@ Item {
         z:                      QGroundControl.zOrderWidgets
         maxHeight:              parent.height - parentToolInsets.topEdgeLeftInset - _toolsMargin - ScreenTools.toolbarHeight
         visible:                !QGroundControl.videoManager.fullScreen
+        isViewer3DOpen:         _root.isViewer3DOpen
 
         onDisplayPreFlightChecklist: {
             if (!preFlightChecklistLoader.active) {
@@ -192,6 +195,8 @@ Item {
             }
             preFlightChecklistLoader.item.open()
         }
+
+        onToggle3DView: _root.toggle3DView()
 
         property real bottomEdgeLeftInset:   visible ? parent.height - y : 0
         property real leftEdgeBottomInset:   visible ? x + width : 0

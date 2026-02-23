@@ -133,6 +133,13 @@ Item {
             visible:                !QGroundControl.videoManager.fullScreen
             utmspActTrigger:        utmspSendActTrigger
             isViewer3DOpen:         viewer3DWindow.isOpen
+
+            onToggle3DView: {
+                if (viewer3DWindow.isOpen)
+                    viewer3DWindow.close()
+                else
+                    viewer3DWindow.open()
+            }
         }
 
         FlyViewCustomLayer {

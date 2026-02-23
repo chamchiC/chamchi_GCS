@@ -17,11 +17,15 @@ ToolStrip {
     id: _root
 
     signal displayPreFlightChecklist
+    signal toggle3DView
+    property bool isViewer3DOpen: false
 
     FlyViewToolStripActionList {
         id: flyViewToolStripActionList
 
+        isViewer3DOpen: _root.isViewer3DOpen
         onDisplayPreFlightChecklist: _root.displayPreFlightChecklist()
+        onToggle3DView: _root.toggle3DView()
     }
 
     model: flyViewToolStripActionList.model

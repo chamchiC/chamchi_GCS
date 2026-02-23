@@ -248,9 +248,9 @@ Item {
     Rectangle {
         id:                     attitudeIndicator
         visible:                !_multipleVehicles
-        anchors.bottomMargin:   _toolsMargin + parentToolInsets.bottomEdgeRightInset
+        anchors.bottomMargin:   ScreenTools.defaultFontPixelHeight * 5
         anchors.rightMargin:    _toolsMargin
-        anchors.bottom:         parent.bottom
+        anchors.bottom:         buttonPanel.top
         anchors.right:          parent.right
         height:                 ScreenTools.defaultFontPixelHeight * 6
         width:                  height
